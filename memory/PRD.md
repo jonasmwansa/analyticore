@@ -102,6 +102,25 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - [x] **All Projects List:** Complete project table with user, source, status, rows
 - [x] **Activity Feed:** Real-time activity log
 
+#### 15. Code Refactoring & System Improvements (Feb 14, 2026)
+- [x] **Refactored analysis/views.py** into modular services:
+  - `DataLoaderService` - Handles loading project data into DataFrames
+  - `TransformationService` - Handles data transformations
+  - `ColumnActionService` - Handles individual column actions
+- [x] **Fixed Redis/Celery async environment:**
+  - Installed and configured Redis server
+  - Celery workers now properly connected to Redis broker
+  - Scheduled pipelines run asynchronously (with sync fallback)
+- [x] **System Health Monitoring with Email Alerts:**
+  - `check_system_health` task runs every 15 minutes
+  - `daily_health_summary` sends daily summary at 8 AM
+  - Email alerts to all admin users when:
+    - Error rate > 5%
+    - DB response > 500ms
+    - Errors in 24h > 10
+  - In-app notifications created for admin users
+  - Thresholds: error_rate=5%, db_response=500ms, errors_24h=10
+
 ### Admin Dashboard API Endpoints
 - `GET /api/saas-admin/analytics/summary` - Dashboard overview
 - `GET /api/saas-admin/analytics/users` - User metrics (DAU/WAU/MAU/stickiness)
