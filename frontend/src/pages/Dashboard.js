@@ -91,7 +91,17 @@ function Dashboard({ user }) {
             </h1>
             <p className="text-[#64748B]">Create and manage your data transformation pipelines</p>
           </div>
-          <Dialog open={showNewProject} onOpenChange={setShowNewProject}>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => setShowCompareModal(true)}
+              variant="outline"
+              className="border-slate-200 text-[#64748B] hover:text-[#6366F1] hover:border-[#6366F1]"
+              data-testid="compare-projects-btn"
+            >
+              <GitCompare className="w-5 h-5 mr-2" />
+              Compare
+            </Button>
+            <Dialog open={showNewProject} onOpenChange={setShowNewProject}>
             <DialogTrigger asChild>
               <Button
                 data-testid="create-project-btn"
