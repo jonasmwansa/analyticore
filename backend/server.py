@@ -160,7 +160,6 @@ async def send_verification_email(email: str, token: str, name: str):
             port=int(os.environ.get('EMAIL_PORT')),
             username=os.environ.get('EMAIL_HOST_USER'),
             password=os.environ.get('EMAIL_HOST_PASSWORD'),
-            use_tls=True,
             start_tls=True
         )
     except Exception as e:
