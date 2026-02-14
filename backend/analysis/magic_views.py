@@ -274,7 +274,7 @@ def export_analysis_report(request, project_id):
     Export analysis report in various formats (JSON, CSV summary, Excel)
     """
     import json
-    from django.http import HttpResponse, FileResponse
+    from django.http import HttpResponse
     import pandas as pd
     import io
     
@@ -297,15 +297,14 @@ def export_analysis_report(request, project_id):
         analysis = run_magic_analysis_service(df, project.name)
         safe_name = project.name.replace(' ', '_').replace('"', '').replace("'", '')
         
+        # For JSON, return as downloadable attachment
         if export_format == 'json':
-            # Return JSON as downloadable file
-            content = json.dumps(analysis, indent=2, default=str)
-            response = HttpResponse(content, content_type='application/json')
-            response['Content-Disposition'] = f'attachment; filename="{safe_name}_analysis_report.json"'
-            return response
+            return Response(analysis, headers={
+                'Content-Disposition': f'attachment; filename="{safe_name}_analysis_report.json"'
+            })
         
+        # For CSV, create plain text response
         if export_format == 'csv':
-            # Create summary CSV with multiple sections
             output_lines = []
             
             # Executive Summary
@@ -343,10 +342,13 @@ def export_analysis_report(request, project_id):
                 output_lines.append(f'{col["name"]},{col["type"]},{col["missing_count"]},{col["missing_percentage"]},{col["unique_values"]}')
             
             csv_content = '\n'.join(output_lines)
-            response = HttpResponse(csv_content, content_type='text/csv; charset=utf-8')
+            
+            # Return as Response with content type override
+            response = HttpResponse(csv_content, content_type='text/csv')
             response['Content-Disposition'] = f'attachment; filename="{safe_name}_analysis_report.csv"'
             return response
         
+        # For Excel, create binary response
         if export_format == 'excel':
             output = io.BytesIO()
             
