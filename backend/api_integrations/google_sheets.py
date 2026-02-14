@@ -23,7 +23,7 @@ SCOPES = [
 
 # Get redirect URI from environment or use default
 def get_redirect_uri():
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://analyticore-ml.preview.emergentagent.com')
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://insights-dashboard-18.preview.emergentagent.com')
     return f"{frontend_url}/api/integrations/google-sheets/callback"
 
 
