@@ -83,6 +83,36 @@ export const analysisAPI = {
   applyColumnAction: (id, data) => api.post(`/analysis/${id}/apply-action`, data),
 };
 
+export const mlAPI = {
+  // ML Info
+  getMLInfo: (id) => api.get(`/analysis/${id}/ml/info`),
+  
+  // Model Training
+  trainModel: (id, data) => api.post(`/analysis/${id}/ml/train`, data),
+  listModels: (id) => api.get(`/analysis/${id}/ml/models`),
+  deleteModel: (id, modelId) => api.delete(`/analysis/${id}/ml/models/${modelId}`),
+  predict: (id, modelId) => api.post(`/analysis/${id}/ml/predict`, { model_id: modelId }),
+  
+  // Auto-ML
+  autoML: (id, data) => api.post(`/analysis/${id}/ml/auto`, data),
+  
+  // Clustering
+  findOptimalClusters: (id, features = [], maxK = 10) => {
+    const params = new URLSearchParams({ max_k: maxK });
+    features.forEach(f => params.append('features', f));
+    return api.get(`/analysis/${id}/ml/cluster/optimal?${params}`);
+  },
+  runClustering: (id, data) => api.post(`/analysis/${id}/ml/cluster`, data),
+  
+  // PCA
+  runPCA: (id, nComponents = null, features = []) => {
+    const params = new URLSearchParams();
+    if (nComponents) params.append('n_components', nComponents);
+    features.forEach(f => params.append('features', f));
+    return api.get(`/analysis/${id}/ml/pca?${params}`);
+  },
+};
+
 export const exportsAPI = {
   exportData: (id, format) => api.get(`/exports/${id}/export?format=${format}`, { responseType: 'blob' }),
   getCharts: (id, type = 'all') => api.get(`/exports/${id}/charts?type=${type}`),
