@@ -191,9 +191,9 @@ class AnalyticoreAPITester:
                     200,
                     session=self.admin_session
                 )
-                if projects_success and isinstance(projects_response, list) and len(projects_response) > 0:
-                    # Find the most recent project
-                    latest_project = max(projects_response, key=lambda p: p.get('created_at', ''))
+                if projects_success and 'results' in projects_response and len(projects_response['results']) > 0:
+                    # Find the most recent project (first in the list due to ordering)
+                    latest_project = projects_response['results'][0]
                     self.project_id = latest_project.get('project_id')
                     print(f"   📁 Found created project ID: {self.project_id}")
                 else:
