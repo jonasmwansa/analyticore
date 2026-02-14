@@ -28,4 +28,5 @@ urlpatterns = [
     path('api/exports/', include('exports.urls')),
     path('api/integrations/', include('api_integrations.urls')),
     path('api/saas-admin/', include('users.admin_urls')),
+    path('api/billing/', include('users.billing_urls')),
 ]
