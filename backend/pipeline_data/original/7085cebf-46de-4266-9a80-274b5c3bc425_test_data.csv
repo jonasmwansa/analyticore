@@ -1,0 +1,21 @@
+id,name,age,salary,department,city,hire_date
+1,John Smith,32,75000,Engineering,New York,2020-01-15
+2,Jane Doe,28,68000,Marketing,Los Angeles,2019-06-20
+3,Bob Johnson,45,95000,Engineering,Chicago,2015-03-10
+4,Alice Williams,38,82000,HR,New York,2018-09-01
+5,Charlie Brown,52,,Finance,Boston,2010-12-05
+6,Diana Miller,29,72000,Engineering,San Francisco,2021-02-14
+7,Eva Davis,41,88000,Marketing,Los Angeles,2016-07-22
+8,Frank Wilson,33,79000,,Chicago,2019-11-30
+9,Grace Lee,27,65000,Engineering,New York,2022-04-18
+10,Henry Taylor,48,105000,Finance,Boston,2012-08-25
+11,Ivy Chen,31,76000,HR,San Francisco,2020-05-12
+12,Jack Martinez,36,84000,Engineering,Chicago,
+13,Kate Anderson,44,91000,Marketing,New York,2014-01-08
+14,Leo Thomas,30,71000,Engineering,Los Angeles,2021-09-15
+15,Mia Garcia,39,87000,Finance,Boston,2017-03-28
+16,Noah Robinson,26,63000,HR,,2022-07-01
+17,Olivia Clark,47,99000,Engineering,San Francisco,2011-11-11
+18,Peter Lewis,34,81000,Marketing,Chicago,2019-02-20
+19,Quinn Hall,42,93000,Finance,New York,2015-06-05
+20,Rachel King,29,69000,Engineering,Los Angeles,2021-01-25
