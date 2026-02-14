@@ -807,6 +807,16 @@ export default function AnalysisDashboard({ projectId }) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* AI Insights Tab */}
+        <TabsContent value="insights" data-testid="insights-content">
+          <QuickInsights projectId={projectId} />
+        </TabsContent>
+
+        {/* Column Actions Tab */}
+        <TabsContent value="actions" data-testid="actions-content">
+          <ColumnActions projectId={projectId} onDataChanged={loadAllData} />
+        </TabsContent>
       </Tabs>
     </div>
   );
