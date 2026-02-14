@@ -379,7 +379,7 @@ def get_columns(request, project_id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_quick_insights(request, project_id):
-    """Generate AI-powered quick insights summary for the project data"""
+    """Generate rule-based quick insights summary for the project data - NO AI REQUIRED"""
     try:
         project = Project.objects.get(project_id=project_id, user=request.user)
     except Project.DoesNotExist:
@@ -390,7 +390,7 @@ def get_quick_insights(request, project_id):
         return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        from .insights import InsightsGenerator
+        from .insights import generate_insights_without_ai
         from .statistics import StatisticalAnalyzer
         
         # Get statistics first
@@ -398,9 +398,8 @@ def get_quick_insights(request, project_id):
         statistics = analyzer.get_descriptive_statistics()
         correlation = analyzer.get_correlation_matrix()
         
-        # Generate AI insights
-        generator = InsightsGenerator(str(project_id))
-        insights = generator.generate_quick_insights(statistics, correlation)
+        # Generate insights using rule-based logic (NO AI)
+        insights = generate_insights_without_ai(statistics, correlation)
         
         return Response(insights)
     except Exception as e:
