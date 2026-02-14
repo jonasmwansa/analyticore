@@ -7,11 +7,29 @@ import pandas as pd
 import os
 from projects.models import Project
 from .models import AnalysisRun, TransformationLog
+from .statistics import StatisticalAnalyzer
 from pipelines.context import PipelineContext
 from pipelines.base import Pipeline
 from pipelines.steps import ColumnUnderstandingStep
 from emergentintegrations.llm.chat import LlmChat, UserMessage
 import json
+
+
+def load_project_dataframe(project):
+    """Helper to load project data into a DataFrame"""
+    file_path = project.processed_file_path or project.file_path
+    
+    if not file_path or not os.path.exists(file_path):
+        return None
+    
+    if file_path.endswith('.csv'):
+        return pd.read_csv(file_path)
+    elif file_path.endswith(('.xlsx', '.xls')):
+        return pd.read_excel(file_path)
+    elif file_path.endswith('.json'):
+        return pd.read_json(file_path)
+    return None
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -25,12 +43,9 @@ def analyze_data(request, project_id):
         return Response({'detail': 'No data uploaded'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        if project.file_path.endswith('.csv'):
-            df = pd.read_csv(project.file_path)
-        elif project.file_path.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(project.file_path)
-        elif project.file_path.endswith('.json'):
-            df = pd.read_json(project.file_path)
+        df = load_project_dataframe(project)
+        if df is None:
+            return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
         
         analysis_prompt = f"""
 You are a data cleaning expert. Analyze this dataset and provide actionable recommendations.
@@ -103,6 +118,7 @@ Return ONLY valid JSON array, no additional text.
     except Exception as e:
         return Response({'detail': f'Analysis failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def apply_transformations(request, project_id):
@@ -116,13 +132,9 @@ def apply_transformations(request, project_id):
         return Response({'detail': 'No transformation rules provided'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
-        file_path = project.file_path
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith(('.xlsx', '.xls')):
-            df = pd.read_excel(file_path)
-        elif file_path.endswith('.json'):
-            df = pd.read_json(file_path)
+        df = load_project_dataframe(project)
+        if df is None:
+            return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
         
         original_shape = df.shape
         
@@ -201,3 +213,164 @@ def apply_transformations(request, project_id):
     
     except Exception as e:
         return Response({'detail': f'Transformation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_statistics(request, project_id):
+    """Get comprehensive descriptive statistics for the project data"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        analyzer = StatisticalAnalyzer(df)
+        statistics = analyzer.get_descriptive_statistics()
+        return Response(statistics)
+    except Exception as e:
+        return Response({'detail': f'Statistics calculation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_correlation(request, project_id):
+    """Get correlation matrix for numeric columns"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    method = request.query_params.get('method', 'pearson')
+    
+    try:
+        analyzer = StatisticalAnalyzer(df)
+        correlation = analyzer.get_correlation_matrix(method=method)
+        return Response(correlation)
+    except Exception as e:
+        return Response({'detail': f'Correlation calculation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_distribution(request, project_id):
+    """Get distribution analysis for numeric columns"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    column = request.query_params.get('column')
+    bins = int(request.query_params.get('bins', 20))
+    
+    try:
+        analyzer = StatisticalAnalyzer(df)
+        distribution = analyzer.get_distribution_analysis(column=column, bins=bins)
+        return Response(distribution)
+    except Exception as e:
+        return Response({'detail': f'Distribution analysis failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_chart_data(request, project_id):
+    """Get data formatted for specific chart types"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    chart_type = request.query_params.get('type', 'scatter')
+    x_column = request.query_params.get('x')
+    y_column = request.query_params.get('y')
+    color_by = request.query_params.get('color')
+    limit = int(request.query_params.get('limit', 1000))
+    
+    try:
+        analyzer = StatisticalAnalyzer(df)
+        chart_data = analyzer.get_chart_data(
+            chart_type=chart_type,
+            x_column=x_column,
+            y_column=y_column,
+            color_by=color_by,
+            limit=limit
+        )
+        return Response(chart_data)
+    except Exception as e:
+        return Response({'detail': f'Chart data generation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_column_info(request, project_id):
+    """Get detailed analysis of a specific column"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    column = request.query_params.get('column')
+    if not column:
+        return Response({'detail': 'Column parameter is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        analyzer = StatisticalAnalyzer(df)
+        column_info = analyzer.get_column_analysis(column)
+        return Response(column_info)
+    except Exception as e:
+        return Response({'detail': f'Column analysis failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_columns(request, project_id):
+    """Get list of columns with their types"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    import numpy as np
+    numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
+    categorical_cols = df.select_dtypes(include=['object', 'category']).columns.tolist()
+    datetime_cols = df.select_dtypes(include=['datetime64']).columns.tolist()
+    
+    columns = []
+    for col in df.columns:
+        col_type = 'numeric' if col in numeric_cols else ('datetime' if col in datetime_cols else 'categorical')
+        columns.append({
+            'name': col,
+            'type': col_type,
+            'dtype': str(df[col].dtype)
+        })
+    
+    return Response({
+        'columns': columns,
+        'numeric': numeric_cols,
+        'categorical': categorical_cols,
+        'datetime': datetime_cols
+    })
