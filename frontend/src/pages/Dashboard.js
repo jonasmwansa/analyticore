@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Database, Plus, FileSpreadsheet, LogOut, Upload, ExternalLink, Folder } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -8,8 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { projectsAPI, authAPI } from '../api';
 
 function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -27,9 +25,7 @@ function Dashboard({ user }) {
 
   const fetchProjects = async () => {
     try {
-      const response = await axios.get(`${API_URL}/projects`, {
-        withCredentials: true
-      });
+      const response = await projectsAPI.list();
       setProjects(response.data);
     } catch (error) {
       toast.error('Failed to load projects');
@@ -45,9 +41,7 @@ function Dashboard({ user }) {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/projects`, newProject, {
-        withCredentials: true
-      });
+      const response = await projectsAPI.create(newProject);
       toast.success('Project created!');
       setShowNewProject(false);
       setNewProject({ name: '', source_type: 'file_upload' });
@@ -59,7 +53,8 @@ function Dashboard({ user }) {
 
   const handleLogout = async () => {
     try {
-      await axios.post(`${API_URL}/auth/logout`, {}, { withCredentials: true });
+      await authAPI.logout();
+      localStorage.removeItem('auth_token');
       toast.success('Logged out successfully');
       navigate('/signin');
     } catch (error) {
