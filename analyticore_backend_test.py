@@ -127,7 +127,7 @@ class AnalyticoreAPITester:
         success, response = self.run_test(
             "User Login (Unverified - Expected to Fail)",
             "POST", 
-            "auth/login/",
+            "auth/login",
             400,  # Expecting failure due to unverified email
             data={
                 "email": self.test_user_email,
@@ -142,7 +142,7 @@ class AnalyticoreAPITester:
         success, response = self.run_test(
             "Google Auth Callback (No Session)",
             "GET",
-            "auth/session/",
+            "auth/session",
             400,  # Expected to fail without session_id
             data={}
         )
@@ -154,7 +154,7 @@ class AnalyticoreAPITester:
         success, response = self.run_test(
             "Get Current User (Admin)",
             "GET",
-            "auth/me/",
+            "auth/me",
             200,
             session=self.admin_session
         )
