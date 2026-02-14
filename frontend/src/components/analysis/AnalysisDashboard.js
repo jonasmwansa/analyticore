@@ -7,7 +7,8 @@ import {
 } from 'recharts';
 import { 
   BarChart3, LineChart as LineIcon, PieChart as PieIcon, Activity,
-  ScatterChart as ScatterIcon, TrendingUp, ArrowUpDown, Info, Table2
+  ScatterChart as ScatterIcon, TrendingUp, ArrowUpDown, Info, Table2,
+  Sparkles, Settings2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -16,6 +17,8 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Tooltip as TooltipUI, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { analysisAPI } from '../../api';
+import QuickInsights from './QuickInsights';
+import ColumnActions from './ColumnActions';
 
 const CHART_COLORS = [
   '#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', 
