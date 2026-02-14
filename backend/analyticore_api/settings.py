@@ -128,7 +128,11 @@ REST_FRAMEWORK = {
 
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
 CORS_ALLOW_CREDENTIALS = True
-CORS_ALLOW_ALL_ORIGINS = '*' in CORS_ALLOWED_ORIGINS
+if '*' in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = []
+else:
+    CORS_ALLOW_ALL_ORIGINS = False
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
