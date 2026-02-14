@@ -278,7 +278,8 @@ def export_analysis_report(request, project_id):
     import pandas as pd
     import io
     
-    export_format = request.query_params.get('format', 'json')
+    # Use 'export_format' instead of 'format' to avoid DRF content negotiation conflict
+    export_format = request.query_params.get('export_format', 'json')
     
     try:
         project = Project.objects.get(project_id=project_id, user=request.user)
