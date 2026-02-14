@@ -250,19 +250,35 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
     setExporting(true);
     try {
       const response = await analysisAPI.exportAnalysisReport(projectId, format);
+      const data = response.data;
+      
+      let blob;
+      let filename = data.filename || `analysis_report.${format === 'excel' ? 'xlsx' : format}`;
+      
+      if (format === 'json') {
+        // For JSON, it's the raw analysis data
+        blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        filename = filename.endsWith('.json') ? filename : `${filename}.json`;
+      } else if (format === 'csv') {
+        // For CSV, content is plain text
+        blob = new Blob([data.content], { type: 'text/csv' });
+      } else if (format === 'excel') {
+        // For Excel, content is base64 encoded
+        const binaryString = atob(data.content);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        blob = new Blob([bytes], { 
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        });
+      }
       
       // Create download link
-      const blob = new Blob([response.data], { 
-        type: format === 'excel' 
-          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          : format === 'json' 
-          ? 'application/json' 
-          : 'text/csv'
-      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `analysis_report.${format === 'excel' ? 'xlsx' : format}`;
+      link.download = filename;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
