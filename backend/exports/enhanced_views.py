@@ -240,7 +240,7 @@ def export_distribution_analysis(request, project_id):
         
         if export_format == 'csv':
             lines = []
-            lines.append(f'# Distribution Analysis')
+            lines.append('# Distribution Analysis')
             lines.append(f'# Project: {project.name}')
             lines.append('')
             
@@ -258,7 +258,7 @@ def export_distribution_analysis(request, project_id):
                 # Box plot stats
                 bp = data['box_plot']
                 lines.append('Box Plot Statistics:')
-                lines.append(f'Min,Q1,Median,Q3,Max,IQR,Outliers Count')
+                lines.append('Min,Q1,Median,Q3,Max,IQR,Outliers Count')
                 lines.append(f'{bp["min"]},{bp["q1"]},{bp["median"]},{bp["q3"]},{bp["max"]},{bp["iqr"]},{bp["outliers_count"]}')
                 lines.append('')
                 
