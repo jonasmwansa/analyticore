@@ -107,7 +107,7 @@ class AnalyticoreAPITester:
         success, response = self.run_test(
             "Admin Login",
             "POST",
-            "auth/login/",
+            "auth/login",
             200,
             data={
                 "email": self.admin_email,
