@@ -118,6 +118,7 @@ function AdminDashboard({ user }) {
     { id: 'users-list', label: 'All Users', icon: UserCheck },
     { id: 'projects-list', label: 'All Projects', icon: Layers },
     { id: 'feed', label: 'Activity Feed', icon: Bell },
+    { id: 'settings', label: 'Alert Settings', icon: Settings },
   ];
 
   if (loading) {
