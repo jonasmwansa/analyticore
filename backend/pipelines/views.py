@@ -288,14 +288,36 @@ def run_now(request, schedule_id):
         trigger='manual'
     )
     
-    # Queue the task
-    execute_scheduled_pipeline.delay(str(schedule.schedule_id))
-    
-    return Response({
-        'message': 'Pipeline run queued',
-        'run_id': str(run.run_id),
-        'status': 'pending'
-    })
+    # Try to queue the task, if Celery/Redis is available
+    # Otherwise, run synchronously
+    try:
+        execute_scheduled_pipeline.delay(str(schedule.schedule_id))
+        return Response({
+            'message': 'Pipeline run queued',
+            'run_id': str(run.run_id),
+            'status': 'pending'
+        })
+    except Exception as e:
+        # Celery not available, run synchronously
+        logger.warning(f"Celery not available, running synchronously: {str(e)}")
+        try:
+            result = execute_scheduled_pipeline(str(schedule.schedule_id))
+            return Response({
+                'message': 'Pipeline run completed',
+                'run_id': str(run.run_id),
+                'status': result.get('status', 'completed'),
+                'duration': result.get('duration'),
+                'rows_processed': result.get('rows_processed')
+            })
+        except Exception as run_error:
+            run.status = 'failed'
+            run.error_message = str(run_error)
+            run.save()
+            return Response({
+                'message': 'Pipeline run failed',
+                'run_id': str(run.run_id),
+                'error': str(run_error)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['GET'])
