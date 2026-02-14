@@ -153,6 +153,13 @@ function Dashboard({ user }) {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
+
+          {/* Compare Projects Modal */}
+          <CompareProjectsModal 
+            open={showCompareModal} 
+            onOpenChange={setShowCompareModal} 
+          />
         </div>
 
         {loading ? (
