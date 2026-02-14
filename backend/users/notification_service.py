@@ -58,7 +58,7 @@ class NotificationService:
             message=message,
             priority=priority,
             related_project_id=related_project_id,
-            related_object_type=related_object_type,
+            related_object_type=related_object_type or '',
             related_object_id=related_object_id,
             metadata=metadata or {},
         )
