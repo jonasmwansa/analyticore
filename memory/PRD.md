@@ -200,9 +200,44 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
   - Supports: missing value handling, duplicate removal, type conversion, text normalization
   - Returns change log with affected counts
 
-### Magic Analysis API Endpoints (NEW)
-- `GET /api/analysis/{project_id}/magic-analyze` - Run one-click comprehensive analysis
-- `POST /api/analysis/{project_id}/magic-apply-cleaning` - Apply selected cleaning operations
+#### 18. Dashboard Layout with Collapsible Sidebar (Feb 14, 2026) ✨ NEW
+- [x] **Shared DashboardLayout Component:**
+  - Collapsible sidebar (expand/collapse with toggle button)
+  - Responsive design (mobile hamburger menu)
+  - Sidebar state persisted in localStorage
+  - Navigation items: Dashboard, Schedules, Security, Notifications
+  - Admin Dashboard (visible only for staff users)
+- [x] **User Profile Section:**
+  - User avatar with initials
+  - Name and email display
+  - Settings dropdown menu
+  - Quick access to logout
+- [x] **Applied to Pages:**
+  - Dashboard (Projects list)
+  - ScheduledPipelines page
+
+#### 19. Export Analysis Reports (Feb 14, 2026) ✨ NEW
+- [x] **Export Button in Magic Analysis:**
+  - Dropdown menu with format options
+  - Export as Excel (.xlsx) with multiple sheets
+  - Export as CSV (plain text summary)
+  - Export as JSON (raw analysis data)
+- [x] **Excel Report Contents:**
+  - Executive Summary sheet
+  - Data Quality issues sheet
+  - Key Insights sheet
+  - Column Profile sheet (with statistics)
+  - Cleaning Suggestions sheet
+  - Correlation Matrix sheet
+  - Statistics Summary sheet
+- [x] **CSV Report Contents:**
+  - Executive summary section
+  - Data quality issues table
+  - Key insights list
+  - Column profile summary
+
+### Export Analysis API Endpoints (NEW)
+- `GET /api/analysis/{project_id}/magic-export?export_format=json|csv|excel` - Export comprehensive analysis report
 
 ### Security API Endpoints
 - `POST /api/auth/2fa/enable` - Send OTP to enable 2FA
