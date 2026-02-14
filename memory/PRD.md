@@ -1,7 +1,7 @@
 # AnalytiCore - Product Requirements Document
 
 ## Overview
-AnalytiCore is a SaaS data analysis pipeline application that enables users to upload, clean, transform, and analyze data with AI-powered recommendations.
+AnalytiCore is a SaaS data analysis pipeline application that enables users to upload, clean, transform, and analyze data with intelligent rule-based recommendations.
 
 ## Tech Stack
 - **Backend:** Django REST Framework 5.2
@@ -10,9 +10,9 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - **Cache/Queue:** Redis + Celery
 - **Authentication:** DRF Token Authentication
 - **Charting:** Recharts
-- **AI:** OpenAI GPT-5.2 via Emergent LLM Key
+- **Analytics:** Rule-based algorithms (pandas, numpy, scipy) - NO AI COSTS
 
-## Core Features
+## Core Features - ALL WORK OFFLINE & FREE
 
 ### Implemented Features
 
@@ -35,105 +35,66 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - [x] Automatic column type detection
 - [x] Data preview (first 100 rows)
 
-#### 4. Statistical Analysis
+#### 4. Statistical Analysis (FREE)
 - [x] **Descriptive Statistics:** Count, Mean, Std, Min, 25%, Median, 75%, Max, Skewness, Kurtosis
 - [x] **Categorical Analysis:** Unique count, Top value, Frequency
 
-#### 5. Correlation Analysis
+#### 5. Correlation Analysis (FREE)
 - [x] Pearson/Spearman/Kendall correlation matrices
 - [x] Interactive heatmap visualization
 - [x] Top correlations ranking with strength classification
 
-#### 6. Distribution Analysis
+#### 6. Distribution Analysis (FREE)
 - [x] Histogram with configurable bins
 - [x] Box plot statistics
 - [x] Normality tests (Shapiro-Wilk, D'Agostino)
 - [x] Outlier detection
 
-#### 7. Data Visualization
+#### 7. Data Visualization (FREE)
 - [x] Bar, Line, Scatter, Pie, Histogram, Box Plot, Heatmap charts
 - [x] Column selector for X/Y axes
 
-#### 8. AI Quick Insights (NEW)
-- [x] AI-powered executive summary of data
+#### 8. Quick Insights - RULE-BASED (FREE, NO AI)
+- [x] Automatic executive summary of data
 - [x] Key findings with importance ranking (high/medium/low)
 - [x] Data quality issues detection with severity
 - [x] Pattern discovery between columns
 - [x] Recommendations with priority
 - [x] Regenerate button
 
-#### 9. Column Actions (NEW)
+#### 9. Column Actions (FREE)
 - [x] Per-column issue detection (missing values, outliers, skewness)
-- [x] **Null Handling:**
-  - Fill with Mean/Median/Mode
-  - Forward Fill / Backward Fill
-  - Fill with Constant Value
-  - Drop Rows with Missing
-- [x] **Data Conversion:**
-  - Convert to Numeric/DateTime/String/Category
-- [x] **Outlier Handling:**
-  - Remove Outliers (IQR method)
-  - Cap Outliers
-- [x] **Text Transformation:**
-  - Trim Whitespace
-  - Convert to Lowercase/Uppercase
-  - Remove Special Characters
-- [x] **Duplicate Handling:**
-  - Remove Duplicates
-- [x] Visual severity indicators (critical/warning/info)
-- [x] One-click Apply buttons
+- [x] **Null Handling:** Fill with Mean/Median/Mode, Forward/Backward Fill, Constant, Drop Rows
+- [x] **Data Conversion:** Numeric, DateTime, String, Category
+- [x] **Outlier Handling:** Remove (IQR) or Cap outliers
+- [x] **Text Transforms:** Trim, Lowercase, Uppercase, Remove Special Chars
+- [x] **Duplicates:** Remove duplicate rows
 
-#### 10. AI-Powered Cleaning Recommendations
-- [x] GPT-5.2 powered analysis
-- [x] Missing value strategies
-- [x] Outlier detection
-- [x] Data type suggestions
+#### 10. Cleaning Recommendations - RULE-BASED (FREE, NO AI)
+- [x] Intelligent missing value strategies based on skewness
+- [x] Outlier detection using IQR method
+- [x] Data type conversion suggestions
+- [x] Column naming improvements
 
-#### 11. Data Transformations
-- [x] Fill missing values
-- [x] Remove duplicates
-- [x] Convert data types
-- [x] Remove outliers
-- [x] Transformation logging
-
-#### 12. Data Export
+#### 11. Data Export (FREE)
 - [x] Export to CSV, Excel (.xlsx), JSON
 
-#### 13. Notification System
-- [x] Email Notifications
-- [x] In-App Notifications
-- [x] Push Notifications
-
-#### 14. Admin Dashboard
-- [x] System statistics
-- [x] User management
-
-#### 15. Infrastructure
-- [x] MySQL database
-- [x] Redis for caching
-- [x] Celery for async tasks
+#### 12. Notification System
+- [x] Email, In-App, Push Notifications
 
 ### Backlog (Future Tasks)
 
 #### P1 - High Priority
 - [ ] Google Sheets integration
-- [ ] Database source connections (PostgreSQL, MySQL external)
+- [ ] Database source connections
 
 #### P2 - Medium Priority
 - [ ] Stripe billing integration
-- [ ] Webhook notifications
 - [ ] Scheduled pipelines
-
-## New API Endpoints (This Session)
-
-```
-GET  /api/analysis/{id}/insights        - AI quick insights summary
-GET  /api/analysis/{id}/column-actions  - Get recommended actions for columns
-POST /api/analysis/{id}/apply-action    - Apply a column action
-```
 
 ## Credentials
 - **Admin:** admin@analyticore.com / admin123
 
 ---
 *Last Updated: February 14, 2026*
+*All analytics features work completely OFFLINE with NO API costs!*
