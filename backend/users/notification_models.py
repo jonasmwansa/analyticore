@@ -58,6 +58,8 @@ class Notification(models.Model):
         ('upload_complete', 'Upload Complete'),
         ('project_created', 'Project Created'),
         ('transformation_applied', 'Transformation Applied'),
+        ('pipeline_complete', 'Pipeline Complete'),
+        ('pipeline_failed', 'Pipeline Failed'),
         ('system', 'System Notification'),
     ]
     
