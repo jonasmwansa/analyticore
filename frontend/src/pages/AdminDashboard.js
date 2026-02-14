@@ -227,6 +227,7 @@ function AdminDashboard({ user }) {
           {activeSection === 'users-list' && <UsersListSection users={users} />}
           {activeSection === 'projects-list' && <ProjectsListSection projects={projects} />}
           {activeSection === 'feed' && <ActivityFeedSection activityFeed={activityFeed} />}
+          {activeSection === 'settings' && <AlertSettingsSection />}
         </div>
       </main>
     </div>
