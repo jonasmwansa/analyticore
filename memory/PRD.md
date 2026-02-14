@@ -202,6 +202,7 @@ GOOGLE_SHEETS_CLIENT_SECRET=your_client_secret
 
 ## Credentials
 - **Test User:** test@example.com / testpass123
+- **Admin User:** admin@analyticore.com / adminpassword (is_staff=true)
 
 ---
 *Last Updated: February 14, 2026*
