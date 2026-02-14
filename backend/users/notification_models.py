@@ -77,7 +77,7 @@ class Notification(models.Model):
     
     # Related object (optional)
     related_project_id = models.UUIDField(null=True, blank=True)
-    related_object_type = models.CharField(max_length=50, blank=True)
+    related_object_type = models.CharField(max_length=50, blank=True, default='')
     related_object_id = models.UUIDField(null=True, blank=True)
     
     # Metadata
