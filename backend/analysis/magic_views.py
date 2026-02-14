@@ -8,12 +8,12 @@ from rest_framework.permissions import IsAuthenticated
 
 from projects.models import Project
 from .services import DataLoaderService, TransformationService
-from .magic_analysis_service import run_magic_analysis
+from .magic_analysis_service import run_magic_analysis as run_magic_analysis_service
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def run_magic_analysis_view(request, project_id):
+def run_magic_analysis(request, project_id):
     """
     One-click magic analysis endpoint
     Returns comprehensive analysis with plain-English insights
@@ -32,7 +32,7 @@ def run_magic_analysis_view(request, project_id):
             return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
         
         # Run magic analysis
-        result = run_magic_analysis(df, project.name)
+        result = run_magic_analysis_service(df, project.name)
         
         return Response(result)
     
@@ -41,10 +41,6 @@ def run_magic_analysis_view(request, project_id):
             {'detail': f'Magic analysis failed: {str(e)}'}, 
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
-
-# Alias for backwards compatibility
-run_magic_analysis = run_magic_analysis_view
 
 
 @api_view(['POST'])
