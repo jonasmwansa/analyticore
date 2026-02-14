@@ -36,6 +36,14 @@ class NotificationService:
             'subject': 'Transformation Applied - AnalytiCore',
             'icon': '🔄',
         },
+        'pipeline_complete': {
+            'subject': 'Scheduled Pipeline Completed - AnalytiCore',
+            'icon': '✅',
+        },
+        'pipeline_failed': {
+            'subject': 'Scheduled Pipeline Failed - AnalytiCore',
+            'icon': '❌',
+        },
         'system': {
             'subject': 'System Notification - AnalytiCore',
             'icon': 'ℹ️',
