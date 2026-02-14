@@ -317,28 +317,42 @@ def export_data(df, project_id, format='csv'):
 def send_pipeline_notification(schedule, run):
     """Send notification about pipeline completion"""
     try:
-        from users.models import Notification
+        from users.notification_service import NotificationService
         
         if run.status == 'completed':
-            title = f"Pipeline '{schedule.name}' completed"
-            message = f"Processed {run.rows_processed} rows in {run.duration_seconds}s"
-            notif_type = 'pipeline_success'
+            notification_type = 'pipeline_complete'
+            title = f"Pipeline '{schedule.name}' completed successfully"
+            message = f"Your scheduled pipeline processed {run.rows_processed:,} rows in {run.duration_seconds or 0} seconds.\n\nProject: {schedule.project.name}\nAction: {schedule.get_action_type_display()}"
+            priority = 'low'
         else:
+            notification_type = 'pipeline_failed'
             title = f"Pipeline '{schedule.name}' failed"
-            message = f"Error: {run.error_message[:200]}"
-            notif_type = 'pipeline_error'
+            error_preview = run.error_message[:200] if run.error_message else 'Unknown error'
+            message = f"Your scheduled pipeline encountered an error.\n\nProject: {schedule.project.name}\nError: {error_preview}"
+            priority = 'high'
         
-        Notification.objects.create(
+        NotificationService.create_notification(
             user=schedule.user,
-            type=notif_type,
+            notification_type=notification_type,
             title=title,
             message=message,
-            data={
+            priority=priority,
+            related_project_id=schedule.project.project_id,
+            related_object_type='pipeline_run',
+            related_object_id=run.run_id,
+            metadata={
                 'schedule_id': str(schedule.schedule_id),
                 'run_id': str(run.run_id),
-                'project_id': str(schedule.project.project_id)
-            }
+                'project_id': str(schedule.project.project_id),
+                'action_type': schedule.action_type,
+                'rows_processed': run.rows_processed,
+                'duration_seconds': run.duration_seconds,
+                'status': run.status
+            },
+            send_email=True,
+            send_push=True
         )
+        logger.info(f"Pipeline notification sent to {schedule.user.email} for run {run.run_id}")
     except Exception as e:
         logger.error(f"Failed to send pipeline notification: {str(e)}")
 
