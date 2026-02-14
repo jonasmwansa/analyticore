@@ -1131,6 +1131,148 @@ tail -f /var/log/redis/redis-server.log
 
 ---
 
+## 18. Dashboard Layout & Navigation
+
+### 18.1 Collapsible Sidebar
+
+The application uses a shared `DashboardLayout` component with a collapsible sidebar:
+
+```jsx
+// Usage in pages
+import DashboardLayout from '../components/DashboardLayout';
+
+function MyPage({ user }) {
+  return (
+    <DashboardLayout user={user}>
+      {/* Page content */}
+    </DashboardLayout>
+  );
+}
+```
+
+**Features:**
+- Expand/collapse toggle button
+- State persisted in localStorage
+- Mobile-responsive with hamburger menu
+- User profile section with avatar
+- Quick-access settings dropdown
+
+**Navigation Items:**
+| Item | Path | Access |
+|------|------|--------|
+| Dashboard | /dashboard | All users |
+| Schedules | /schedules | All users |
+| Security | /settings/security | All users |
+| Notifications | /settings/notifications | All users |
+| Admin Dashboard | /admin | Staff only |
+
+### 18.2 Component Structure
+
+```
+frontend/src/
+├── components/
+│   ├── DashboardLayout.js    # Shared layout with sidebar
+│   ├── admin/
+│   │   └── MetricCard.js     # Reusable metric display card
+│   └── analysis/
+│       └── MagicAnalysis.js  # One-click analysis component
+└── pages/
+    ├── Dashboard.js          # Uses DashboardLayout
+    ├── ScheduledPipelines.js # Uses DashboardLayout
+    └── admin/
+        └── AdminDashboard.js # Admin-only dashboard
+```
+
+---
+
+## 19. Magic Analysis Feature
+
+### 19.1 Overview
+
+Magic Analysis provides one-click comprehensive data analysis with plain-English insights. No external AI APIs are used - all analysis is performed locally using pandas, numpy, scipy, and scikit-learn.
+
+### 19.2 Analysis Components
+
+**Executive Summary:**
+- Quality score (0-100) with color-coded ring
+- Plain-English data description
+- Key statistics cards (rows, columns, missing, duplicates)
+
+**Data Profiling:**
+- Column-by-column statistics
+- Distribution type detection
+- Outlier identification
+- Cardinality analysis
+
+**Data Quality Assessment:**
+- Issue detection with severity levels (critical/warning/info)
+- Missing values analysis
+- Duplicate detection
+- Constant column identification
+
+**Cleaning Suggestions:**
+- Per-column recommendations
+- Strategy dropdown (mean, median, mode, forward_fill, drop, constant)
+- Recommended strategy highlighted
+- Select-all and apply functionality
+
+**Key Insights:**
+- Strong correlation detection
+- Distribution pattern analysis
+- Category dominance warnings
+- ML readiness assessment
+- Time range analysis (for datetime columns)
+
+**Suggested Visualizations:**
+- Automatic chart recommendations based on data types
+- Histogram, scatter, bar, pie, heatmap, box plot suggestions
+
+### 19.3 Export Functionality
+
+**Available Formats:**
+
+| Format | Description | Content |
+|--------|-------------|---------|
+| Excel | Multi-sheet workbook | Summary, Quality, Insights, Profile, Suggestions, Correlations, Statistics |
+| CSV | Plain text summary | Sections separated by headers |
+| JSON | Raw analysis data | Complete analysis object |
+
+**API Usage:**
+```javascript
+// Frontend
+const response = await analysisAPI.exportAnalysisReport(projectId, 'excel');
+
+// Response for CSV/Excel contains base64 or text content
+{
+  "filename": "Project_analysis_report.xlsx",
+  "content_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "content": "<base64_encoded_data>",
+  "encoding": "base64"
+}
+```
+
+### 19.4 Backend Service
+
+```python
+# backend/analysis/magic_analysis_service.py
+
+from analysis.magic_analysis_service import run_magic_analysis
+
+# Run analysis on a pandas DataFrame
+result = run_magic_analysis(df, project_name="My Project")
+
+# Result contains:
+# - executive_summary
+# - data_profile
+# - data_quality
+# - cleaning_suggestions
+# - key_insights
+# - suggested_visualizations
+# - next_steps
+```
+
+---
+
 ## Quick Start Summary
 
 ```bash
