@@ -365,24 +365,68 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
           </h2>
           <p className="text-slate-500 mt-1">One-click comprehensive data analysis with plain-English insights</p>
         </div>
-        <Button
-          onClick={runAnalysis}
-          disabled={loading}
-          className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
-          data-testid="run-magic-analysis-btn"
-        >
-          {loading ? (
-            <>
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-              Analyzing...
-            </>
-          ) : (
-            <>
-              <Zap className="w-4 h-4 mr-2" />
-              {analysisResult ? 'Re-analyze' : 'Analyze My Data'}
-            </>
+        <div className="flex items-center gap-3">
+          {analysisResult && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={exporting}
+                  className="border-slate-300"
+                  data-testid="export-report-btn"
+                >
+                  {exporting ? (
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="w-4 h-4 mr-2" />
+                  )}
+                  Export Report
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-white">
+                <DropdownMenuItem 
+                  onClick={() => exportReport('excel')}
+                  className="cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 mr-2 text-green-600" />
+                  Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => exportReport('csv')}
+                  className="cursor-pointer"
+                >
+                  <FileText className="w-4 h-4 mr-2 text-blue-600" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => exportReport('json')}
+                  className="cursor-pointer"
+                >
+                  <FileJson className="w-4 h-4 mr-2 text-amber-600" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
-        </Button>
+          <Button
+            onClick={runAnalysis}
+            disabled={loading}
+            className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25"
+            data-testid="run-magic-analysis-btn"
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                {analysisResult ? 'Re-analyze' : 'Analyze My Data'}
+              </>
+            )}
+          </Button>
+        </div>
       </div>
       
       {/* Loading State */}
