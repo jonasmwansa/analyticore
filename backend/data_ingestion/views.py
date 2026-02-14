@@ -125,6 +125,29 @@ def get_data_preview(request, project_id):
         elif file_path.endswith('.json'):
             df = pd.read_json(file_path)
         
-        return Response({'data': df.head(100).to_dict('records'), 'total_rows': len(df), 'columns': df.columns.tolist()})
+        # Convert DataFrame to serializable format (handle NaN, inf, etc.)
+        preview_df = df.head(100)
+        data_records = []
+        for _, row in preview_df.iterrows():
+            record = {}
+            for col in preview_df.columns:
+                val = row[col]
+                if pd.isna(val):
+                    record[col] = None
+                elif isinstance(val, (np.floating, float)) and (np.isinf(val) or np.isnan(val)):
+                    record[col] = None
+                elif isinstance(val, (np.integer, np.int64, np.int32)):
+                    record[col] = int(val)
+                elif isinstance(val, (np.floating, np.float64, np.float32)):
+                    record[col] = float(val)
+                else:
+                    record[col] = val
+            data_records.append(record)
+        
+        return Response({
+            'data': data_records, 
+            'total_rows': int(len(df)), 
+            'columns': df.columns.tolist()
+        })
     except Exception as e:
         return Response({'detail': f'Failed to load data: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
