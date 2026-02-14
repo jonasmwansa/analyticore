@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import {
   Sparkles, CheckCircle2, AlertCircle, AlertTriangle, Info, TrendingUp,
-  BarChart3, PieChart, Play, RefreshCw, ChevronRight,
-  Settings2, Zap, Target, Brain, Link2, Calendar, FileSpreadsheet
+  BarChart3, PieChart, Play, RefreshCw, ChevronRight, Download,
+  Settings2, Zap, Target, Brain, Link2, Calendar, FileSpreadsheet, FileJson, FileText
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -11,6 +11,12 @@ import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu';
 import { analysisAPI } from '../../api';
 
 const SEVERITY_COLORS = {
