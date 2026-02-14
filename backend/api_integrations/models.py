@@ -1,2 +1,2 @@
-# Models are defined in data_ingestion.models (DataSource, DataUpload)
-# This app handles the logic for connecting to external data sources
+# Views for API integrations are in this file
+# Models (DataSource, DataUpload) are defined in data_ingestion/models.py
