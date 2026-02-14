@@ -261,35 +261,31 @@ function ProjectView({ user }) {
           </TabsList>
 
           <TabsContent value="upload" data-testid="upload-tab-content">
-            <Card className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="text-center py-12">
-                <div className="w-20 h-20 bg-[#EEF2FF] rounded-full flex items-center justify-center mx-auto mb-6">
-                  <Upload className="w-10 h-10 text-[#6366F1]" />
-                </div>
-                <h2 className="text-2xl font-bold text-[#0F172A] mb-3">Upload Your Data</h2>
-                <p className="text-[#64748B] mb-6">Supported formats: CSV, Excel (.xlsx, .xls), JSON</p>
-                
-                <input
-                  type="file"
-                  accept=".csv,.xlsx,.xls,.json"
-                  onChange={handleFileUpload}
-                  disabled={uploading}
-                  id="file-upload"
-                  data-testid="file-upload-input"
-                  className="hidden"
-                />
-                <label htmlFor="file-upload">
-                  <Button
-                    as="span"
-                    disabled={uploading}
-                    data-testid="upload-file-btn"
-                    className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg h-12 px-8 font-semibold shadow-md shadow-indigo-500/20 cursor-pointer"
-                  >
-                    {uploading ? 'Uploading...' : 'Choose File'}
-                  </Button>
-                </label>
-              </div>
-            </Card>
+            <DataSourcePicker 
+              projectId={projectId}
+              onImportComplete={async (data) => {
+                if (data.file) {
+                  // Handle file upload
+                  setUploading(true);
+                  try {
+                    await projectsAPI.uploadFile(projectId, data.file);
+                    toast.success('File uploaded successfully!');
+                    await fetchProject();
+                    setActiveTab('preview');
+                    await fetchDataPreview();
+                  } catch (error) {
+                    toast.error(error.response?.data?.detail || 'Upload failed');
+                  } finally {
+                    setUploading(false);
+                  }
+                } else if (data.statistics) {
+                  // Handle Google Sheets or Database import
+                  await fetchProject();
+                  setActiveTab('preview');
+                  await fetchDataPreview();
+                }
+              }}
+            />
           </TabsContent>
 
           <TabsContent value="preview" data-testid="preview-tab-content">
