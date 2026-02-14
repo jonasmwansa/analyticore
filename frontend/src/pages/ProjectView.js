@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   Database, ArrowLeft, Upload, FileSpreadsheet, Wand2, Check, 
-  X, Download, Play, AlertCircle, CheckCircle2, Activity 
+  X, Download, Play, AlertCircle, CheckCircle2, Activity, BarChart3
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -11,7 +11,8 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
-import { projectsAPI } from '../api';
+import { projectsAPI, exportsAPI } from '../api';
+import AnalysisDashboard from '../components/analysis/AnalysisDashboard';
 
 function ProjectView({ user }) {
   const { projectId } = useParams();
@@ -21,6 +22,7 @@ function ProjectView({ user }) {
   const [uploading, setUploading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
   const [transforming, setTransforming] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [dataPreview, setDataPreview] = useState(null);
   const [recommendations, setRecommendations] = useState([]);
   const [selectedRules, setSelectedRules] = useState([]);
@@ -35,7 +37,7 @@ function ProjectView({ user }) {
       const response = await projectsAPI.get(projectId);
       setProject(response.data);
       
-      if (response.data.status === 'uploaded' || response.data.status === 'transformed') {
+      if (response.data.status === 'uploaded' || response.data.status === 'transformed' || response.data.status === 'analyzed') {
         setActiveTab('preview');
         fetchDataPreview();
       }
@@ -126,6 +128,31 @@ function ProjectView({ user }) {
     }
   };
 
+  const handleExport = async (format) => {
+    setExporting(true);
+    try {
+      const response = await exportsAPI.exportData(projectId, format);
+      const blob = new Blob([response.data], { 
+        type: format === 'csv' ? 'text/csv' : 
+              format === 'xlsx' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' :
+              'application/json'
+      });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${project.name}_export.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      toast.success(`Data exported as ${format.toUpperCase()}`);
+    } catch (error) {
+      toast.error('Export failed');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const isRecommendationSelected = (index) => {
     const rec = recommendations[index];
     return selectedRules.some(r => r.column === rec.column && r.action === rec.action_type);
@@ -162,6 +189,21 @@ function ProjectView({ user }) {
               <span className="text-xl font-bold text-[#0F172A]">{project?.name}</span>
             </div>
           </div>
+          
+          {project?.file_path && (
+            <div className="flex items-center gap-2">
+              <Select onValueChange={handleExport} disabled={exporting}>
+                <SelectTrigger className="w-40 bg-white" data-testid="export-select">
+                  <SelectValue placeholder={exporting ? "Exporting..." : "Export Data"} />
+                </SelectTrigger>
+                <SelectContent className="bg-white">
+                  <SelectItem value="csv">Export CSV</SelectItem>
+                  <SelectItem value="xlsx">Export Excel</SelectItem>
+                  <SelectItem value="json">Export JSON</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </div>
       </nav>
 
@@ -186,13 +228,22 @@ function ProjectView({ user }) {
               Data Preview
             </TabsTrigger>
             <TabsTrigger 
+              value="analysis" 
+              data-testid="tab-analysis"
+              disabled={!project?.file_path}
+              className="data-[state=active]:bg-[#6366F1] data-[state=active]:text-white rounded-md disabled:opacity-50"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Analysis
+            </TabsTrigger>
+            <TabsTrigger 
               value="recommendations" 
               data-testid="tab-recommendations"
               disabled={!project?.file_path}
               className="data-[state=active]:bg-[#6366F1] data-[state=active]:text-white rounded-md disabled:opacity-50"
             >
               <Wand2 className="w-4 h-4 mr-2" />
-              AI Recommendations
+              AI Cleaning
             </TabsTrigger>
           </TabsList>
 
@@ -271,24 +322,34 @@ function ProjectView({ user }) {
                   </Card>
 
                   <Card className="stat-card bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
-                    <Button
-                      onClick={analyzeData}
-                      disabled={analyzing}
-                      data-testid="analyze-data-btn"
-                      className="w-full bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg h-12 font-semibold shadow-md shadow-violet-500/20"
-                    >
-                      {analyzing ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <Wand2 className="w-5 h-5 mr-2" />
-                          Get AI Insights
-                        </>
-                      )}
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={analyzeData}
+                        disabled={analyzing}
+                        data-testid="analyze-data-btn"
+                        className="flex-1 bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg h-12 font-semibold shadow-md shadow-violet-500/20"
+                      >
+                        {analyzing ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Wand2 className="w-5 h-5 mr-2" />
+                            AI Insights
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        onClick={() => setActiveTab('analysis')}
+                        data-testid="view-analysis-btn"
+                        variant="outline"
+                        className="h-12 px-4"
+                      >
+                        <BarChart3 className="w-5 h-5" />
+                      </Button>
+                    </div>
                   </Card>
                 </div>
               )}
@@ -331,13 +392,17 @@ function ProjectView({ user }) {
             </div>
           </TabsContent>
 
+          <TabsContent value="analysis" data-testid="analysis-tab-content">
+            <AnalysisDashboard projectId={projectId} />
+          </TabsContent>
+
           <TabsContent value="recommendations" data-testid="recommendations-tab-content">
             <div className="space-y-6">
               {recommendations.length === 0 ? (
                 <Card className="bg-white border border-slate-200 rounded-xl p-12 shadow-sm text-center">
                   <Wand2 className="w-16 h-16 text-[#94A3B8] mx-auto mb-4" />
                   <h3 className="text-xl font-bold text-[#0F172A] mb-2">No Recommendations Yet</h3>
-                  <p className="text-[#64748B] mb-6">Click "Get AI Insights" in the Data Preview tab to analyze your data</p>
+                  <p className="text-[#64748B] mb-6">Click "AI Insights" in the Data Preview tab to analyze your data</p>
                   <Button
                     onClick={() => {
                       setActiveTab('preview');
@@ -353,7 +418,7 @@ function ProjectView({ user }) {
                 <>
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-2xl font-bold text-[#0F172A] mb-1">AI Recommendations</h3>
+                      <h3 className="text-2xl font-bold text-[#0F172A] mb-1">AI Cleaning Recommendations</h3>
                       <p className="text-[#64748B]">Select transformations to apply to your data</p>
                     </div>
                     <Button
