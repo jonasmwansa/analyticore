@@ -34,6 +34,7 @@ def load_project_dataframe(project):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def analyze_data(request, project_id):
+    """Generate rule-based cleaning recommendations - NO AI REQUIRED"""
     try:
         project = Project.objects.get(project_id=project_id, user=request.user)
     except Project.DoesNotExist:
@@ -47,61 +48,9 @@ def analyze_data(request, project_id):
         if df is None:
             return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
         
-        analysis_prompt = f"""
-You are a data cleaning expert. Analyze this dataset and provide actionable recommendations.
-
-Dataset Info:
-- Total Rows: {len(df)}
-- Total Columns: {len(df.columns)}
-- Columns: {', '.join(df.columns.tolist())}
-- Data Types: {df.dtypes.to_dict()}
-- Missing Values: {df.isnull().sum().to_dict()}
-- Duplicate Rows: {df.duplicated().sum()}
-
-For numeric columns:
-{df.describe().to_dict() if len(df.select_dtypes(include=['number']).columns) > 0 else 'No numeric columns'}
-
-Provide recommendations in JSON format as an array of objects with these fields:
-- column: column name
-- issue: what's the problem
-- recommendation: what to do
-- action_type: one of [fill_missing, remove_duplicates, convert_type, remove_outliers, rename_column]
-- parameters: object with action-specific parameters
-
-Focus on:
-1. Missing values (suggest mean/median/mode/forward-fill based on data type)
-2. Data type conversions (dates, numbers stored as strings)
-3. Outliers in numeric columns
-4. Duplicate rows
-5. Column naming improvements
-
-Return ONLY valid JSON array, no additional text.
-"""
-        
-        chat = LlmChat(
-            api_key=settings.EMERGENT_LLM_KEY,
-            session_id=f"analysis_{project_id}",
-            system_message="You are a data analysis expert. Always respond with valid JSON."
-        )
-        chat.with_model("openai", "gpt-5.2")
-        
-        message = UserMessage(text=analysis_prompt)
-        
-        import asyncio
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        response = loop.run_until_complete(chat.send_message(message))
-        loop.close()
-        
-        try:
-            recommendations = json.loads(response)
-        except:
-            response_clean = response.strip()
-            if response_clean.startswith('```json'):
-                response_clean = response_clean[7:]
-            if response_clean.endswith('```'):
-                response_clean = response_clean[:-3]
-            recommendations = json.loads(response_clean.strip())
+        # Use rule-based recommendations (NO AI)
+        from .insights import generate_cleaning_recommendations_without_ai
+        recommendations = generate_cleaning_recommendations_without_ai(df)
         
         analysis = AnalysisRun.objects.create(
             project=project,
