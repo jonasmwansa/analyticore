@@ -5,10 +5,10 @@ import axios from 'axios';
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
 function ProtectedRoute({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(location.state?.user ? true : null);
-  const [user, setUser] = useState(location.state?.user || null);
   const location = useLocation();
   const navigate = useNavigate();
+  const [isAuthenticated, setIsAuthenticated] = useState(location.state?.user ? true : null);
+  const [user, setUser] = useState(location.state?.user || null);
 
   useEffect(() => {
     if (location.state?.user) {
