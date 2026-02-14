@@ -71,7 +71,12 @@ Return ONLY valid JSON array, no additional text.
         chat.with_model("openai", "gpt-5.2")
         
         message = UserMessage(text=analysis_prompt)
-        response = await chat.send_message(message)
+        
+        import asyncio
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        response = loop.run_until_complete(chat.send_message(message))
+        loop.close()
         
         try:
             recommendations = json.loads(response)
