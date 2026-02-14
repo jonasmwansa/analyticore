@@ -16,7 +16,7 @@ from users.models import User
 from users.saas_models import Subscription, UsageTracking
 from projects.models import Project
 from analysis.models import AnalysisRun, TransformationLog
-from pipelines.scheduled_models import ScheduledPipeline, PipelineRun
+from pipelines.models import ScheduledPipeline, PipelineRun
 
 
 @api_view(['GET'])
