@@ -85,6 +85,7 @@ export const analysisAPI = {
   // Magic Analysis - One-Click Analysis
   runMagicAnalysis: (id) => api.get(`/analysis/${id}/magic-analyze`),
   applyMagicCleaning: (id, actions) => api.post(`/analysis/${id}/magic-apply-cleaning`, { actions }),
+  exportAnalysisReport: (id, format = 'excel') => api.get(`/analysis/${id}/magic-export?format=${format}`, { responseType: 'blob' }),
 };
 
 export const mlAPI = {
