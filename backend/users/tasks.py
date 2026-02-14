@@ -3,6 +3,9 @@ from users.webhook_utils import retry_failed_webhooks, trigger_webhook
 from users.saas_models import UsageTracking
 import logging
 
+# Import health monitoring tasks to ensure they are registered with Celery
+from users.health_monitoring import check_system_health, send_health_alerts, daily_health_summary
+
 logger = logging.getLogger(__name__)
 
 @shared_task
