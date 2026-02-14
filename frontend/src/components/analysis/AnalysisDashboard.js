@@ -575,6 +575,22 @@ export default function AnalysisDashboard({ projectId }) {
             <PieIcon className="w-4 h-4 mr-2" />
             Visualize
           </TabsTrigger>
+          <TabsTrigger 
+            value="insights"
+            data-testid="tab-insights"
+            className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-md"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI Insights
+          </TabsTrigger>
+          <TabsTrigger 
+            value="actions"
+            data-testid="tab-actions"
+            className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-md"
+          >
+            <Settings2 className="w-4 h-4 mr-2" />
+            Actions
+          </TabsTrigger>
         </TabsList>
 
         {/* Statistics Tab */}
