@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 import pymysql
 import pandas as pd
-from .models import DataSource
+from data_ingestion.models import DataSource
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
