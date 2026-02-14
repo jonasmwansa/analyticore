@@ -88,6 +88,29 @@ export const analysisAPI = {
   exportAnalysisReport: (id, format = 'excel') => api.get(`/analysis/${id}/magic-export?export_format=${format}`),
 };
 
+export const enhancedExportsAPI = {
+  // Enhanced Export APIs
+  exportStatistics: (id, format = 'csv') => api.get(`/exports/${id}/export-statistics?export_format=${format}`),
+  exportCorrelation: (id, format = 'csv', method = 'pearson') => 
+    api.get(`/exports/${id}/export-correlation?export_format=${format}&method=${method}`),
+  exportDistribution: (id, format = 'csv', column = null, bins = 20) => {
+    const params = new URLSearchParams({ export_format: format, bins });
+    if (column) params.append('column', column);
+    return api.get(`/exports/${id}/export-distribution?${params}`);
+  },
+  exportVisualization: (id, chartType = 'correlation', format = 'png', column = null) => {
+    const params = new URLSearchParams({ export_format: format, chart_type: chartType });
+    if (column) params.append('column', column);
+    return api.get(`/exports/${id}/export-visualization?${params}`);
+  },
+};
+
+export const compareAPI = {
+  // Compare Projects
+  getComparableProjects: () => api.get('/projects/comparable/'),
+  compareProjects: (projectIds) => api.post('/projects/compare/', { project_ids: projectIds }),
+};
+
 export const mlAPI = {
   // ML Info
   getMLInfo: (id) => api.get(`/analysis/${id}/ml/info`),
