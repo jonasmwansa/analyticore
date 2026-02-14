@@ -11,7 +11,7 @@ BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 # Test credentials from main agent context
 ADMIN_EMAIL = "admin@analyticore.com"
 ADMIN_PASSWORD = "adminpassword"
-TEST_PROJECT_ID = "7085cebf-46de-4266-9a80-274b5c3bc425"
+TEST_PROJECT_ID = "590b784e-be98-439f-b41c-770c5a1ab704"
 
 
 @pytest.fixture(scope="module")
