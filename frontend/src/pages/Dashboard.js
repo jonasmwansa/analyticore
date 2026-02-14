@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Database, Plus, FileSpreadsheet, LogOut, Upload, ExternalLink, Folder, Clock } from 'lucide-react';
+import { Plus, FileSpreadsheet, Upload, Database, ExternalLink, Folder } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { projectsAPI, authAPI } from '../api';
-import NotificationBell from '../components/NotificationBell';
+import { projectsAPI } from '../api';
+import DashboardLayout from '../components/DashboardLayout';
 
 function Dashboard({ user }) {
   const navigate = useNavigate();
@@ -27,7 +27,6 @@ function Dashboard({ user }) {
   const fetchProjects = async () => {
     try {
       const response = await projectsAPI.list();
-      // Handle paginated response from Django REST Framework
       const projectsData = response.data.results || response.data;
       setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch (error) {
@@ -54,17 +53,6 @@ function Dashboard({ user }) {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await authAPI.logout();
-      localStorage.removeItem('auth_token');
-      toast.success('Logged out successfully');
-      navigate('/signin');
-    } catch (error) {
-      toast.error('Logout failed');
-    }
-  };
-
   const getSourceIcon = (sourceType) => {
     if (sourceType === 'file_upload') return <Upload className="w-5 h-5" />;
     if (sourceType === 'database') return <Database className="w-5 h-5" />;
@@ -81,7 +69,8 @@ function Dashboard({ user }) {
     const styles = {
       created: 'bg-slate-100 text-slate-700',
       uploaded: 'bg-blue-100 text-blue-700',
-      transformed: 'bg-green-100 text-green-700'
+      analyzed: 'bg-green-100 text-green-700',
+      transformed: 'bg-emerald-100 text-emerald-700'
     };
     return (
       <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${styles[status] || styles.created}`}>
@@ -91,43 +80,14 @@ function Dashboard({ user }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <nav className="bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Database className="w-8 h-8 text-[#6366F1]" />
-            <span className="text-2xl font-bold text-[#0F172A]">AnalytiCore</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[#64748B]">Welcome, {user?.name}</span>
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/schedules')}
-              data-testid="schedules-btn"
-              className="text-slate-700 hover:text-[#6366F1]"
-            >
-              <Clock className="w-5 h-5 mr-2" />
-              Schedules
-            </Button>
-            <NotificationBell />
-            <Button
-              variant="ghost"
-              onClick={handleLogout}
-              data-testid="logout-btn"
-              className="text-slate-700 hover:text-[#F43F5E]"
-            >
-              <LogOut className="w-5 h-5 mr-2" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
+    <DashboardLayout user={user}>
+      <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-4xl font-bold text-[#0F172A] mb-2" style={{ letterSpacing: '-0.02em' }}>Your Projects</h1>
-            <p className="text-lg text-[#64748B]">Create and manage your data transformation pipelines</p>
+            <h1 className="text-3xl font-bold text-[#0F172A] mb-1" style={{ letterSpacing: '-0.02em' }}>
+              Your Projects
+            </h1>
+            <p className="text-[#64748B]">Create and manage your data transformation pipelines</p>
           </div>
           <Dialog open={showNewProject} onOpenChange={setShowNewProject}>
             <DialogTrigger asChild>
@@ -211,7 +171,7 @@ function Dashboard({ user }) {
                 key={project.project_id}
                 onClick={() => navigate(`/projects/${project.project_id}`)}
                 data-testid={`project-card-${project.project_id}`}
-                className="stat-card bg-white border border-slate-200 rounded-xl p-6 shadow-sm cursor-pointer"
+                className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm cursor-pointer hover:shadow-md hover:border-indigo-200 transition-all"
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-12 h-12 bg-[#EEF2FF] rounded-lg flex items-center justify-center">
@@ -225,11 +185,11 @@ function Dashboard({ user }) {
                   <div className="flex gap-4 text-sm">
                     <div>
                       <span className="text-[#94A3B8]">Rows:</span>
-                      <span className="ml-1 font-semibold text-[#0F172A] data-cell">{project.row_count.toLocaleString()}</span>
+                      <span className="ml-1 font-semibold text-[#0F172A]">{project.row_count.toLocaleString()}</span>
                     </div>
                     <div>
                       <span className="text-[#94A3B8]">Columns:</span>
-                      <span className="ml-1 font-semibold text-[#0F172A] data-cell">{project.column_count}</span>
+                      <span className="ml-1 font-semibold text-[#0F172A]">{project.column_count}</span>
                     </div>
                   </div>
                 )}
@@ -237,8 +197,8 @@ function Dashboard({ user }) {
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
