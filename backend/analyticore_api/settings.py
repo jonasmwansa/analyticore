@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'drf_yasg',
+    'django_celery_beat',
     
     'users.apps.UsersConfig',
     'projects.apps.ProjectsConfig',
@@ -175,3 +176,14 @@ PIPELINE_STORAGE_PATH.mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'processed').mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'exports').mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'logs').mkdir(exist_ok=True)
+
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+STRIPE_PUBLIC_KEY = os.environ.get('STRIPE_PUBLIC_KEY', '')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
