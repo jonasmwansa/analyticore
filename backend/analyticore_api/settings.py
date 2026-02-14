@@ -1,10 +1,14 @@
 import os
 import pymysql
 from pathlib import Path
+from dotenv import load_dotenv
 
 pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-analyticore-dev-key-change-in-production')
 
