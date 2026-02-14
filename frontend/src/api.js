@@ -160,4 +160,20 @@ export const integrationsAPI = {
   deleteDataSource: (sourceId) => api.delete(`/integrations/sources/${sourceId}`),
 };
 
+export const pipelinesAPI = {
+  // Schedules
+  listSchedules: () => api.get('/pipelines/schedules/'),
+  createSchedule: (data) => api.post('/pipelines/schedules/create/', data),
+  getSchedule: (scheduleId) => api.get(`/pipelines/schedules/${scheduleId}/`),
+  updateSchedule: (scheduleId, data) => api.put(`/pipelines/schedules/${scheduleId}/update/`, data),
+  deleteSchedule: (scheduleId) => api.delete(`/pipelines/schedules/${scheduleId}/delete/`),
+  toggleSchedule: (scheduleId) => api.post(`/pipelines/schedules/${scheduleId}/toggle/`),
+  runNow: (scheduleId) => api.post(`/pipelines/schedules/${scheduleId}/run/`),
+  getStats: () => api.get('/pipelines/schedules/stats/'),
+  
+  // Runs
+  listRuns: () => api.get('/pipelines/runs/'),
+  getRunDetails: (runId) => api.get(`/pipelines/runs/${runId}/`),
+};
+
 export default api;
