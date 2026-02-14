@@ -126,7 +126,7 @@ async def send_verification_email(email: str, token: str, name: str):
     verification_link = f"{frontend_url}/verify-email?token={token}"
     
     message = MIMEMultipart("alternative")
-    message["Subject"] = "Verify Your DataPulse Account"
+    message["Subject"] = "Verify Your AnalytiCore Account"
     message["From"] = os.environ.get('DEFAULT_FROM_EMAIL')
     message["To"] = email
     
@@ -134,7 +134,7 @@ async def send_verification_email(email: str, token: str, name: str):
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-          <h2 style="color: #6366F1;">Welcome to DataPulse, {name}!</h2>
+          <h2 style="color: #6366F1;">Welcome to AnalytiCore, {name}!</h2>
           <p>Thank you for signing up. Please verify your email address to get started.</p>
           <a href="{verification_link}" 
              style="display: inline-block; padding: 12px 24px; background-color: #6366F1; 
