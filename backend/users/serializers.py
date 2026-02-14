@@ -7,8 +7,8 @@ from .models import User, EmailVerificationToken
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['user_id', 'email', 'name', 'picture', 'is_verified', 'date_joined']
-        read_only_fields = ['user_id', 'date_joined']
+        fields = ['user_id', 'email', 'name', 'picture', 'is_verified', 'is_staff', 'date_joined']
+        read_only_fields = ['user_id', 'date_joined', 'is_staff']
 
 class UserRegistrationSerializer(serializers.Serializer):
     email = serializers.EmailField()
