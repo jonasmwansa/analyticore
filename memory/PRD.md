@@ -159,6 +159,51 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
   - Account lockout events
   - Settings changes
 
+#### 17. Magic Analysis - One-Click Data Analysis (Feb 14, 2026) ✨ NEW
+- [x] **One-Click Analysis Button:**
+  - "Analyze My Data" button in Analysis tab
+  - Triggers comprehensive analysis pipeline
+  - Re-analyze button for refreshing results
+- [x] **Executive Summary:**
+  - Quality Score ring (0-100) with color-coded label
+  - Plain-English summary text explaining data characteristics
+  - Stats cards: Total Rows, Columns, Missing Values, Duplicates
+- [x] **Data Profile:**
+  - Column-by-column profiling (type, missing, unique, statistics)
+  - Distribution type detection (normal, skewed, heavy-tailed)
+  - Outlier detection per column with counts/percentages
+  - Cardinality analysis for categorical columns
+- [x] **Data Quality Assessment:**
+  - Quality score calculation (missing values, duplicates, size penalties)
+  - Issues list with severity levels (critical/warning/info)
+  - Issue types: missing_values, duplicates, outliers, high_cardinality, constant_column
+- [x] **Cleaning Suggestions with User Options:**
+  - Per-column cleaning recommendations
+  - Dropdown to select strategy: mean, median, mode, forward_fill, constant, drop_rows
+  - Recommended strategy highlighted with sparkle icon
+  - Select All / Apply Selected functionality
+  - Priority levels: high/medium/low
+- [x] **Plain-English Insights:**
+  - Strong correlation detection with natural language description
+  - Distribution patterns explained in simple terms
+  - Category dominance warnings
+  - ML readiness assessment
+  - Small dataset warnings
+- [x] **Suggested Visualizations:**
+  - Automatic chart recommendations based on data types
+  - Histogram for numeric distributions
+  - Heatmap for correlation visualization
+  - Scatter plots for correlated pairs
+  - Bar/pie charts for categorical columns
+- [x] **Apply Cleaning Operations:**
+  - POST endpoint to apply selected cleaning strategies
+  - Supports: missing value handling, duplicate removal, type conversion, text normalization
+  - Returns change log with affected counts
+
+### Magic Analysis API Endpoints (NEW)
+- `GET /api/analysis/{project_id}/magic-analyze` - Run one-click comprehensive analysis
+- `POST /api/analysis/{project_id}/magic-apply-cleaning` - Apply selected cleaning operations
+
 ### Security API Endpoints
 - `POST /api/auth/2fa/enable` - Send OTP to enable 2FA
 - `POST /api/auth/2fa/verify-enable` - Verify OTP and enable 2FA
