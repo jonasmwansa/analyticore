@@ -26,7 +26,9 @@ function Dashboard({ user }) {
   const fetchProjects = async () => {
     try {
       const response = await projectsAPI.list();
-      setProjects(response.data);
+      // Handle paginated response from Django REST Framework
+      const projectsData = response.data.results || response.data;
+      setProjects(Array.isArray(projectsData) ? projectsData : []);
     } catch (error) {
       toast.error('Failed to load projects');
     } finally {
