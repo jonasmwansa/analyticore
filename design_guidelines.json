@@ -1,0 +1,143 @@
+{
+  "identity": {
+    "name": "E1",
+    "role": "Anti-AI Creative Designer",
+    "mission": "Kill the generic SaaS look. Create 'Clinical Vibrance'.",
+    "principles": [
+      "Fusion over Imitation: Mix Swiss Print with Electric Neon.",
+      "Emotion First: Data should feel like a superpower, not a chore.",
+      "Content is King: The data itself is the art. Everything else frames it.",
+      "Zoom In: Focus on the micro-interactions of data cleaning.",
+      "Negative Space: Use whitespace as a luxury.",
+      "Contrast: High contrast for data legibility is non-negotiable."
+    ],
+    "hall_of_shame": [
+      "Purple/Teal gradients everywhere (Avoid generic cyberpunk)",
+      "Inter font for headings (Boring)",
+      "Centered layouts (Lazy)",
+      "Low contrast gray text (Accessibility nightmare)"
+    ]
+  },
+  "visual_strategy": {
+    "theme": "light",
+    "mood": "Clinical Vibrance",
+    "description": "A clean, lab-like environment (White/Slate) where data is treated with surgical precision, injected with electric bursts of color (Indigo/Neon) to signify AI intelligence.",
+    "archetype": "Archetype 4 (Swiss) + Archetype 7 (Electric)",
+    "typography": {
+      "headings": {
+        "family": "Manrope",
+        "weights": ["600", "800"],
+        "tracking": "-0.02em",
+        "usage": "Use for all page titles and section headers. Bold and tight."
+      },
+      "body": {
+        "family": "Geist Sans",
+        "fallback": "Inter",
+        "weights": ["400", "500"],
+        "usage": "General UI text, labels, and descriptions."
+      },
+      "data": {
+        "family": "JetBrains Mono",
+        "weights": ["400", "500"],
+        "usage": "Table data, code snippets, transformation rules, formulas."
+      }
+    },
+    "colors": {
+      "background": {
+        "default": "#F8FAFC",
+        "paper": "#FFFFFF",
+        "subtle": "#F1F5F9"
+      },
+      "foreground": {
+        "default": "#0F172A",
+        "muted": "#64748B",
+        "inverse": "#FFFFFF"
+      },
+      "primary": {
+        "default": "#6366F1",
+        "hover": "#4F46E5",
+        "foreground": "#FFFFFF",
+        "description": "Electric Indigo. Use for Primary Actions (Save, Run, Connect)."
+      },
+      "secondary": {
+        "default": "#E2E8F0",
+        "foreground": "#1E293B",
+        "description": "Slate 200. Use for secondary buttons and filters."
+      },
+      "accent": {
+        "success": "#14B8A6",
+        "warning": "#F59E0B",
+        "error": "#F43F5E",
+        "ai": "#8B5CF6",
+        "description": "Teal for clean data, Rose for errors, Violet for AI suggestions."
+      },
+      "border": {
+        "default": "#E2E8F0",
+        "active": "#94A3B8"
+      }
+    },
+    "spacing": {
+      "scale": "Generous. Use p-6 or p-8 for cards. Gap-6 for grids.",
+      "containers": "p-8 md:p-12 for main content areas."
+    },
+    "layout": {
+      "dashboard": "Bento Grid (Mode B). Dense but breathable.",
+      "landing": "Asymmetric Tetris Grid (Mode A). Overlapping elements.",
+      "max_width": "max-w-7xl mx-auto"
+    }
+  },
+  "components": {
+    "library": "shadcn/ui",
+    "customization_rules": [
+      "Radius: Rounded-lg (0.5rem) for a modern, friendly feel.",
+      "Shadows: Soft, ambient shadows (shadow-sm) for cards. No heavy drops.",
+      "Borders: 1px solid border-slate-200. No borderless cards.",
+      "Inputs: Tall inputs (h-10 or h-12) with bg-white."
+    ],
+    "specific_components": {
+      "cards": "bg-white border border-slate-200 shadow-sm rounded-xl p-6",
+      "buttons": {
+        "primary": "bg-indigo-500 hover:bg-indigo-600 text-white shadow-md shadow-indigo-500/20 font-medium rounded-lg h-10 px-6",
+        "secondary": "bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-medium rounded-lg h-10 px-6",
+        "ghost": "hover:bg-slate-100 text-slate-600"
+      },
+      "tables": "border-collapse. Header: bg-slate-50 text-xs uppercase tracking-wider text-slate-500. Rows: hover:bg-slate-50/50. Cell padding: py-3 px-4.",
+      "badge": "Rounded-full px-2.5 py-0.5 text-xs font-semibold. Use distinct colors for status."
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1645280403333-3775178fc8c6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGNvbG9yZnVsJTIwM2QlMjBnZW9tZXRyaWMlMjBzaGFwZXMlMjBkYXRhJTIwZmxvd3xlbnwwfHx8fDE3NzEwNzM3NDh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Blue and green abstract waves. Use as a subtle background layer or hero image."
+      },
+      {
+        "category": "feature_visualization",
+        "url": "https://images.unsplash.com/photo-1686625689084-7498ab1c017b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHwyfHxhYnN0cmFjdCUyMGNvbG9yZnVsJTIwM2QlMjBnZW9tZXRyaWMlMjBzaGFwZXMlMjBkYXRhJTIwZmxvd3xlbnwwfHx8fDE3NzEwNzM3NDh8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Vibrant ribbons. Use for the 'AI Transformation' feature section."
+      },
+      {
+        "category": "clean_workspace",
+        "url": "https://images.unsplash.com/photo-1755436612984-cb18dd2efbf6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA4Mzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMGRhdGElMjB2aXN1YWxpemF0aW9uJTIwdmlicmFudCUyMGNvbG9ycyUyMGNsZWFuJTIwZGVzayUyMHNldHVwJTIwcHJvZmVzc2lvbmFsJTIwaGVhZHNob3QlMjB0ZWFtJTIwY29sbGFib3JhdGlvbnxlbnwwfHx8fDE3NzEwNzM3NDJ8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Clean desk setup. Use for 'User Productivity' section."
+      }
+    ],
+    "icons": "Use Lucide React (already installed). Use 'Activity', 'Database', 'Wand2' (for AI), 'FileSpreadsheet' (for Excel), 'Zap' (for speed)."
+  },
+  "universal_guidelines": [
+    "Avoid the 'AI Slop': Do not use generic centered layouts or gradients everywhere.",
+    "No Transition All: Use specific transitions (e.g., transition-colors duration-200).",
+    "Data-TestID: All interactive elements must have data-testid attributes.",
+    "Feedback Loops: Every action (click, save, delete) must have a toast notification (Sonner) or visual state change.",
+    "Empty States: Never leave a list empty. Show a helpful illustration and a 'Create New' button.",
+    "Loading States: Use Skeletons (Shadcn) that match the layout, not generic spinners."
+  ],
+  "implementation_steps": [
+    "Step 1: Configure Tailwind with the 'Clinical Vibrance' palette.",
+    "Step 2: Install Shadcn components (Button, Card, Input, Table, Dialog, Sheet, Sonner).",
+    "Step 3: Create the 'AppShell' layout (Sidebar + Header + Main Content Area).",
+    "Step 4: Build the Data Ingestion Flow (File Upload -> Preview -> Transform).",
+    "Step 5: Implement the Dashboard with Bento Grids and Recharts."
+  ]
+}
