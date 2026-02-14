@@ -10,6 +10,7 @@ import ProjectView from './pages/ProjectView';
 import AdminDashboard from './pages/AdminDashboard';
 import AuthCallback from './pages/AuthCallback';
 import NotificationSettings from './pages/NotificationSettings';
+import ScheduledPipelines from './pages/ScheduledPipelines';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
