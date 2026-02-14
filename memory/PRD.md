@@ -121,6 +121,61 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
   - In-app notifications created for admin users
   - Thresholds: error_rate=5%, db_response=500ms, errors_24h=10
 
+#### 16. Security & Compliance Features (Feb 14, 2026)
+- [x] **Two-Factor Authentication (2FA) with Email OTP:**
+  - Email-based OTP with 10-minute expiry
+  - 3 attempt limit per OTP
+  - Enable/disable via user settings
+  - Security audit logging for all 2FA events
+- [x] **Government-Grade Password Policy:**
+  - Minimum 12 characters
+  - Requires uppercase, lowercase, digit, special character
+  - 90-day password expiry
+  - Cannot reuse last 5 passwords
+  - Real-time password strength indicator
+- [x] **Password Reset Flow:**
+  - Email-based reset with 1-hour token expiry
+  - Secure token invalidation after use
+  - Password validation on reset
+- [x] **Security Settings Page:**
+  - 2FA enable/disable
+  - Password change with validation
+  - Security audit log display
+- [x] **Admin Alert Settings (Configurable):**
+  - Error rate threshold (%)
+  - DB response threshold (ms)
+  - Max errors in 24h
+  - Health check interval
+  - Alert/summary email toggles
+  - Additional recipient list
+- [x] **Privacy Policy & Terms of Service:**
+  - Comprehensive privacy policy page
+  - Terms of service page
+  - Footer links on landing page
+- [x] **Security Audit Logging:**
+  - Login success/failure
+  - Password changes/resets
+  - 2FA enable/disable
+  - Account lockout events
+  - Settings changes
+
+### Security API Endpoints
+- `POST /api/auth/2fa/enable` - Send OTP to enable 2FA
+- `POST /api/auth/2fa/verify-enable` - Verify OTP and enable 2FA
+- `POST /api/auth/2fa/disable` - Disable 2FA (requires password)
+- `POST /api/auth/2fa/send-otp` - Send login OTP
+- `POST /api/auth/2fa/verify-otp` - Verify login OTP and get token
+- `POST /api/auth/password/reset-request` - Request password reset
+- `POST /api/auth/password/verify-token` - Verify reset token
+- `POST /api/auth/password/reset` - Reset password with token
+- `POST /api/auth/password/update` - Update password (authenticated)
+- `POST /api/auth/password/validate` - Validate password strength
+- `GET /api/auth/security/settings` - Get user security settings
+- `GET /api/auth/security/audit-log` - Get security audit log
+- `GET /api/saas-admin/settings/alerts` - Get alert settings (admin)
+- `PUT /api/saas-admin/settings/alerts/update` - Update alert settings (admin)
+- `POST /api/saas-admin/settings/alerts/test-email` - Send test alert email
+
 ### Admin Dashboard API Endpoints
 - `GET /api/saas-admin/analytics/summary` - Dashboard overview
 - `GET /api/saas-admin/analytics/users` - User metrics (DAU/WAU/MAU/stickiness)
