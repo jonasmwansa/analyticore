@@ -18,8 +18,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
             return ProjectCreateSerializer
         return ProjectSerializer
     
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        project = serializer.save(user=request.user)
+        # Return full project data with project_id
+        response_serializer = ProjectSerializer(project)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['get'])
     def statistics(self, request, project_id=None):
