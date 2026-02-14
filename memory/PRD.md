@@ -93,8 +93,41 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 
 #### P2 - Medium Priority
 - [ ] Stripe billing integration
-- [ ] Scheduled pipelines with Celery Beat
 - [ ] Webhook notifications
+
+## Scheduled Pipelines Feature
+
+### Schedule Types
+- **Hourly**: Run at a specific minute every hour
+- **Daily**: Run at a specific time every day
+- **Weekly**: Run on a specific day and time each week
+- **Monthly**: Run on a specific day of month at a specific time
+
+### Action Types
+- **Refresh Data**: Reload data from source and update statistics
+- **Run Analysis**: Execute statistical analysis pipeline
+- **Apply Cleaning**: Apply configured data cleaning rules
+- **Export Data**: Export data to configured format (CSV/Excel/JSON)
+- **Full Pipeline**: Refresh + Analysis + Cleaning + Export
+
+### Pipeline Runs
+- Track all executions with status (pending, running, completed, failed)
+- Store logs, duration, rows processed
+- Support both scheduled and manual triggers
+- Automatic failure tracking (pauses after 3 consecutive failures)
+
+### API Endpoints
+- `GET /api/pipelines/schedules/` - List all schedules
+- `POST /api/pipelines/schedules/create/` - Create new schedule
+- `GET /api/pipelines/schedules/{id}/` - Get schedule details with run history
+- `PUT /api/pipelines/schedules/{id}/update/` - Update schedule
+- `DELETE /api/pipelines/schedules/{id}/delete/` - Delete schedule
+- `POST /api/pipelines/schedules/{id}/toggle/` - Pause/Activate schedule
+- `POST /api/pipelines/schedules/{id}/run/` - Trigger manual run
+- `GET /api/pipelines/schedules/stats/` - Get aggregated statistics
+- `GET /api/pipelines/runs/` - Get run history
+
+**Note**: When Redis/Celery is not available, scheduled runs execute synchronously.
 
 ## Data Source Integration Details
 
