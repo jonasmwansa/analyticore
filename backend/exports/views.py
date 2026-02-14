@@ -42,7 +42,7 @@ def export_data(request, project_id):
         if export_format == 'csv':
             export_path += '.csv'
             df.to_csv(export_path, index=False)
-        elif export_format == 'excel':
+        elif export_format == 'xlsx':
             export_path += '.xlsx'
             df.to_excel(export_path, index=False)
         elif export_format == 'json':
