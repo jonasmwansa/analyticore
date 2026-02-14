@@ -16,6 +16,7 @@ function Dashboard({ user }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showNewProject, setShowNewProject] = useState(false);
+  const [showCompareModal, setShowCompareModal] = useState(false);
   const [newProject, setNewProject] = useState({
     name: '',
     source_type: 'file_upload'
