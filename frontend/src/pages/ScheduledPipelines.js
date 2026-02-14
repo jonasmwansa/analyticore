@@ -581,8 +581,8 @@ function ScheduledPipelines({ user }) {
             )}
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }
 
