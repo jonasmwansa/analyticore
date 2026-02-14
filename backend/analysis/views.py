@@ -4,15 +4,11 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 import pandas as pd
+import numpy as np
 import os
 from projects.models import Project
 from .models import AnalysisRun, TransformationLog
 from .statistics import StatisticalAnalyzer
-from pipelines.context import PipelineContext
-from pipelines.base import Pipeline
-from pipelines.steps import ColumnUnderstandingStep
-from emergentintegrations.llm.chat import LlmChat, UserMessage
-import json
 
 
 def load_project_dataframe(project):
