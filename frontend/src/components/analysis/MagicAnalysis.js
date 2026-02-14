@@ -402,7 +402,7 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
                   Export Report
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-white">
+              <DropdownMenuContent align="end" className="w-56 bg-white">
                 <DropdownMenuItem 
                   onClick={() => exportReport('excel')}
                   className="cursor-pointer"
@@ -423,6 +423,14 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
                 >
                   <FileJson className="w-4 h-4 mr-2 text-amber-600" />
                   Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setShowEnhancedExport(true)}
+                  className="cursor-pointer"
+                >
+                  <MoreHorizontal className="w-4 h-4 mr-2 text-indigo-600" />
+                  Advanced Export Options...
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
