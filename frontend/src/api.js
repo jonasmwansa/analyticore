@@ -70,4 +70,19 @@ export const adminAPI = {
   getProjects: () => api.get('/saas-admin/projects'),
 };
 
+export const notificationsAPI = {
+  list: (params = {}) => api.get('/notifications/', { params }),
+  getSummary: () => api.get('/notifications/summary'),
+  markRead: (notificationId) => api.post(`/notifications/${notificationId}/read`),
+  markAllRead: () => api.post('/notifications/read-all'),
+  delete: (notificationId) => api.delete(`/notifications/${notificationId}`),
+  getPreferences: () => api.get('/notifications/preferences'),
+  updatePreferences: (data) => api.put('/notifications/preferences', data),
+  subscribePush: (subscription) => api.post('/notifications/push/subscribe', subscription),
+  unsubscribePush: (endpoint) => api.delete('/notifications/push/unsubscribe', { data: { endpoint } }),
+  getVapidKey: () => api.get('/notifications/push/vapid-key'),
+  test: (type = 'system', sendEmail = false, sendPush = false) => 
+    api.post('/notifications/test', { type, send_email: sendEmail, send_push: sendPush }),
+};
+
 export default api;
