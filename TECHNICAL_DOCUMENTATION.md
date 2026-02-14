@@ -27,6 +27,8 @@
 15. [Scheduled Pipelines](#15-scheduled-pipelines)
 16. [Testing](#16-testing)
 17. [Troubleshooting](#17-troubleshooting)
+18. [Dashboard Layout & Navigation](#18-dashboard-layout--navigation)
+19. [Magic Analysis Feature](#19-magic-analysis-feature)
 
 ---
 
