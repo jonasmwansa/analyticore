@@ -122,6 +122,19 @@ export const adminAPI = {
   getDashboard: () => api.get('/saas-admin/dashboard'),
   getUsers: () => api.get('/saas-admin/users'),
   getProjects: () => api.get('/saas-admin/projects'),
+  
+  // Enhanced Analytics APIs
+  getSummary: () => api.get('/saas-admin/analytics/summary'),
+  getUserMetrics: () => api.get('/saas-admin/analytics/users'),
+  getUserGrowth: (days = 30) => api.get(`/saas-admin/analytics/user-growth?days=${days}`),
+  getActivityAnalytics: (days = 30) => api.get(`/saas-admin/analytics/activity?days=${days}`),
+  getProjectAnalytics: (days = 30) => api.get(`/saas-admin/analytics/projects?days=${days}`),
+  getPipelineAnalytics: (days = 30) => api.get(`/saas-admin/analytics/pipelines?days=${days}`),
+  getSubscriptionAnalytics: () => api.get('/saas-admin/analytics/subscriptions'),
+  getRetentionAnalytics: () => api.get('/saas-admin/analytics/retention'),
+  getFunnelAnalytics: () => api.get('/saas-admin/analytics/funnel'),
+  getActivityFeed: (limit = 50) => api.get(`/saas-admin/analytics/feed?limit=${limit}`),
+  getSystemHealth: () => api.get('/saas-admin/analytics/health'),
 };
 
 export const notificationsAPI = {
