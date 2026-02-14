@@ -1,0 +1,93 @@
+{
+  "summary": "Completed comprehensive testing of Scheduled Pipelines feature for AnalytiCore. All 27 backend API tests passed (100%). Frontend UI fully functional with stats cards, schedule list, run history, create dialog, toggle, and run now buttons all working correctly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Run History Tab",
+        "issues": ["Console warning: <tr> cannot be a child of <span> - minor HTML structure issue in table rendering, does not affect functionality"]
+      },
+      {
+        "screen": "Create Schedule Dialog",
+        "issues": ["Missing aria-describedby for DialogContent (accessibility warning in console)"]
+      }
+    ]
+  },
+  "passed_tests": [
+    "Authentication - All endpoints require auth (401 without token)",
+    "GET /api/pipelines/schedules/ - List schedules returns proper structure",
+    "GET /api/pipelines/schedules/{id}/ - Get schedule details with runs history",
+    "GET /api/pipelines/schedules/{id}/ - Returns 404 for nonexistent schedule",
+    "POST /api/pipelines/schedules/create/ - Creates schedule successfully",
+    "POST /api/pipelines/schedules/create/ - Returns 400 for missing required fields",
+    "POST /api/pipelines/schedules/create/ - Returns 404 for invalid project_id",
+    "POST /api/pipelines/schedules/create/ - Returns 400 for invalid schedule_type",
+    "POST /api/pipelines/schedules/{id}/toggle/ - Toggles active/paused state",
+    "POST /api/pipelines/schedules/{id}/toggle/ - Returns 404 for nonexistent schedule",
+    "POST /api/pipelines/schedules/{id}/run/ - Triggers manual run (sync fallback working)",
+    "POST /api/pipelines/schedules/{id}/run/ - Returns 404 for nonexistent schedule",
+    "GET /api/pipelines/schedules/stats/ - Returns aggregated statistics",
+    "GET /api/pipelines/runs/ - Returns run history with proper structure",
+    "DELETE /api/pipelines/schedules/{id}/delete/ - Deletes schedule and verifies removal",
+    "DELETE /api/pipelines/schedules/{id}/delete/ - Returns 404 for nonexistent schedule",
+    "Schedule types - hourly, daily, weekly, monthly all create successfully",
+    "Action types - refresh_data, run_analysis, apply_cleaning, export_data, full_pipeline all accepted",
+    "Frontend - Stats cards display Total Schedules, Active, Runs (7 days), Success Rate",
+    "Frontend - Schedule list shows schedule name, project, schedule display, action type, next run",
+    "Frontend - Schedule cards have Run Now, Pause/Activate, Delete buttons",
+    "Frontend - Recent Runs indicators displayed on schedule cards",
+    "Frontend - Run History tab shows table with all run details",
+    "Frontend - Create Schedule dialog opens with all form fields",
+    "Frontend - Toggle button pauses/activates schedules with toast feedback",
+    "Frontend - Run Now button triggers pipeline execution"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_pipelines_api.py",
+    "/app/test_reports/pytest/pipelines_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/tests/test_pipelines_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (27/27 tests passed)",
+    "frontend": "100% (All UI features working correctly)"
+  },
+  "test_credentials": {
+    "test_email": "test@example.com",
+    "test_password": "testpass123",
+    "auth_token": "5adeec057f6c3a6a1ebd551303a2dcc1b0be1c05",
+    "existing_project_id": "fcd7cfe8-3931-4915-a331-fe4fcd0fe8bb",
+    "existing_schedule_id": "5efb25bb-f935-48f4-956f-7452b03f617c"
+  },
+  "seed_data_creation": "Tests create temporary schedules with 'TEST_' prefix and clean them up after execution",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Scheduled Pipelines feature is fully functional. Backend APIs support all CRUD operations, toggle, run now, stats, and run history. Celery/Redis is not running in this environment, so execute_scheduled_pipeline falls back to synchronous execution which works correctly. The frontend at /schedules route displays all features including stats cards, schedule list with action buttons, run history tab, and create schedule dialog. All schedule types (hourly, daily, weekly, monthly) and action types (refresh_data, run_analysis, apply_cleaning, export_data, full_pipeline) are supported.",
+  "features_verified": {
+    "backend_endpoints": {
+      "list_schedules": "GET /api/pipelines/schedules/",
+      "create_schedule": "POST /api/pipelines/schedules/create/",
+      "get_schedule": "GET /api/pipelines/schedules/{id}/",
+      "toggle_schedule": "POST /api/pipelines/schedules/{id}/toggle/",
+      "run_now": "POST /api/pipelines/schedules/{id}/run/",
+      "delete_schedule": "DELETE /api/pipelines/schedules/{id}/delete/",
+      "get_stats": "GET /api/pipelines/schedules/stats/",
+      "get_run_history": "GET /api/pipelines/runs/"
+    },
+    "frontend_components": {
+      "stats_cards": ["Total Schedules", "Active", "Runs (7 days)", "Success Rate"],
+      "schedule_list": "Displays schedule name, project, schedule display, action type, next run, recent runs",
+      "schedule_actions": ["Run Now", "Pause/Activate toggle", "Delete"],
+      "tabs": ["Schedules", "Run History"],
+      "create_dialog": ["Project dropdown", "Schedule Name", "Schedule Type", "Action Type", "Hour", "Minute", "Day of Week (for weekly)", "Day of Month (for monthly)"]
+    },
+    "celery_fallback": "Synchronous execution when Redis unavailable - WORKS CORRECTLY"
+  }
+}
