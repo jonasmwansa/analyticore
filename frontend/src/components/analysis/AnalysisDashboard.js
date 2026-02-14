@@ -8,7 +8,7 @@ import {
 import { 
   BarChart3, LineChart as LineIcon, PieChart as PieIcon, Activity,
   ScatterChart as ScatterIcon, TrendingUp, ArrowUpDown, Info, Table2,
-  Sparkles, Settings2, Brain
+  Sparkles, Settings2, Brain, Zap
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -20,6 +20,7 @@ import { analysisAPI } from '../../api';
 import QuickInsights from './QuickInsights';
 import ColumnActions from './ColumnActions';
 import MLDashboard from './MLDashboard';
+import MagicAnalysis from './MagicAnalysis';
 
 const CHART_COLORS = [
   '#6366F1', '#8B5CF6', '#EC4899', '#F59E0B', '#10B981', 
