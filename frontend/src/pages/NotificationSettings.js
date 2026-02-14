@@ -24,11 +24,15 @@ function NotificationSettings({ user }) {
     email_on_data_issues: true,
     email_on_export_ready: true,
     email_on_upload_complete: true,
+    email_on_pipeline_complete: true,
+    email_on_pipeline_failed: true,
     email_digest_frequency: 'instant',
     push_enabled: false,
     push_on_analysis_complete: true,
     push_on_data_issues: true,
     push_on_export_ready: true,
+    push_on_pipeline_complete: true,
+    push_on_pipeline_failed: true,
     inapp_enabled: true,
   });
 
