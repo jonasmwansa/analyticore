@@ -59,6 +59,22 @@ export const projectsAPI = {
   transform: (id, rules) => api.post(`/analysis/${id}/transform`, { rules }),
 };
 
+export const analysisAPI = {
+  getStatistics: (id) => api.get(`/analysis/${id}/statistics`),
+  getCorrelation: (id, method = 'pearson') => api.get(`/analysis/${id}/correlation?method=${method}`),
+  getDistribution: (id, column = null, bins = 20) => {
+    const params = new URLSearchParams({ bins });
+    if (column) params.append('column', column);
+    return api.get(`/analysis/${id}/distribution?${params}`);
+  },
+  getChartData: (id, type, options = {}) => {
+    const params = new URLSearchParams({ type, ...options });
+    return api.get(`/analysis/${id}/chart?${params}`);
+  },
+  getColumnInfo: (id, column) => api.get(`/analysis/${id}/column?column=${column}`),
+  getColumns: (id) => api.get(`/analysis/${id}/columns`),
+};
+
 export const exportsAPI = {
   exportData: (id, format) => api.get(`/exports/${id}/export?format=${format}`, { responseType: 'blob' }),
   getCharts: (id, type = 'all') => api.get(`/exports/${id}/charts?type=${type}`),
