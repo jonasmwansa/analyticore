@@ -754,7 +754,7 @@ GET /api/pipelines/stats/
 Response: { "total": 10, "active": 8, "success_rate": 95.5 }
 ```
 
-### 11.7 Admin Analytics Endpoints
+### 11.8 Admin Analytics Endpoints
 
 ```
 # All require is_staff=True
