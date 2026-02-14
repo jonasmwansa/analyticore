@@ -59,6 +59,14 @@ function AppRouter() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/schedules"
+        element={
+          <ProtectedRoute>
+            <ScheduledPipelines />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
