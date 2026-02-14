@@ -57,10 +57,10 @@ function AdminDashboard({ user }) {
 
   if (loading) {
     return (
-      <div className=\"min-h-screen flex items-center justify-center bg-[#F8FAFC]\">
-        <div className=\"text-center\">
-          <div className=\"w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4\"></div>
-          <p className=\"text-[#64748B]\">Loading admin dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC]">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#6366F1] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-[#64748B]">Loading admin dashboard...</p>
         </div>
       </div>
     );
