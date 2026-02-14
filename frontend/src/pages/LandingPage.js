@@ -12,7 +12,7 @@ function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Database className="w-8 h-8 text-[#6366F1]" />
-            <span className="text-2xl font-bold text-[#0F172A]" style={{ letterSpacing: '-0.02em' }}>DataPulse</span>
+            <span className="text-2xl font-bold text-[#0F172A]" style={{ letterSpacing: '-0.02em' }}>AnalytiCore</span>
           </div>
           <div className="flex gap-3">
             <Button
@@ -132,7 +132,7 @@ function LandingPage() {
 
       <footer className="bg-white border-t border-slate-200 py-8">
         <div className="max-w-7xl mx-auto px-6 text-center text-[#94A3B8]">
-          <p>&copy; 2026 DataPulse. Making data preparation effortless.</p>
+          <p>&copy; 2026 AnalytiCore. Making data preparation effortless.</p>
         </div>
       </footer>
     </div>

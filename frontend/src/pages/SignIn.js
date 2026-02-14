@@ -48,7 +48,7 @@ function SignIn() {
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Database className="w-10 h-10 text-[#6366F1]" />
-              <span className="text-3xl font-bold text-[#0F172A]">DataPulse</span>
+              <span className="text-3xl font-bold text-[#0F172A]">AnalytiCore</span>
             </div>
             <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Welcome back</h1>
             <p className="text-[#64748B]">Sign in to continue to your projects</p>

@@ -98,7 +98,7 @@ function Dashboard({ user }) {
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Database className="w-8 h-8 text-[#6366F1]" />
-            <span className="text-2xl font-bold text-[#0F172A]">DataPulse</span>
+            <span className="text-2xl font-bold text-[#0F172A]">AnalytiCore</span>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#64748B]">Welcome, {user?.name}</span>
