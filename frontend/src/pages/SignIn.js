@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Database, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { authAPI } from '../api';
 
 function SignIn() {
   const navigate = useNavigate();
@@ -23,13 +21,12 @@ function SignIn() {
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, formData, {
-        withCredentials: true
-      });
+      const response = await authAPI.login(formData);
+      localStorage.setItem('auth_token', response.data.token);
       toast.success('Welcome back!');
       navigate('/dashboard', { state: { user: response.data.user } });
     } catch (error) {
-      const message = error.response?.data?.detail || 'Login failed';
+      const message = error.response?.data?.detail || error.response?.data?.non_field_errors?.[0] || 'Login failed';
       toast.error(message);
     } finally {
       setLoading(false);
