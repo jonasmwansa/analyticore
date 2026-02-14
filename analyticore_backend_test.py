@@ -92,7 +92,7 @@ class AnalyticoreAPITester:
         success, response = self.run_test(
             "User Registration",
             "POST",
-            "auth/register/",
+            "auth/register",
             201,
             data={
                 "email": self.test_user_email,
