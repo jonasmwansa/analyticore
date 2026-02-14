@@ -15,6 +15,8 @@ class NotificationPreference(models.Model):
     email_on_data_issues = models.BooleanField(default=True)
     email_on_export_ready = models.BooleanField(default=True)
     email_on_upload_complete = models.BooleanField(default=True)
+    email_on_pipeline_complete = models.BooleanField(default=True)
+    email_on_pipeline_failed = models.BooleanField(default=True)
     email_digest_frequency = models.CharField(
         max_length=20,
         choices=[
@@ -31,6 +33,8 @@ class NotificationPreference(models.Model):
     push_on_analysis_complete = models.BooleanField(default=True)
     push_on_data_issues = models.BooleanField(default=True)
     push_on_export_ready = models.BooleanField(default=True)
+    push_on_pipeline_complete = models.BooleanField(default=True)
+    push_on_pipeline_failed = models.BooleanField(default=True)
     
     # In-app notifications
     inapp_enabled = models.BooleanField(default=True)
