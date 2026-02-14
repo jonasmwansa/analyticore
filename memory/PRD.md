@@ -386,6 +386,47 @@ GOOGLE_SHEETS_CLIENT_SECRET=your_client_secret
 - **Admin User:** admin@analyticore.com / adminpassword (is_staff=true)
 
 ---
+### Code Architecture
+
+```
+/app/
+├── backend/
+│   ├── analytics/
+│   │   ├── services/
+│   │   ├── magic_analysis_service.py
+│   │   ├── magic_views.py
+│   │   └── urls.py
+│   └── ...
+└── frontend/
+    └── src/
+        ├── components/
+        │   ├── admin/              # Refactored admin components (11 sections)
+        │   │   ├── index.js
+        │   │   ├── OverviewSection.js
+        │   │   ├── UserMetricsSection.js
+        │   │   ├── ActivitySection.js
+        │   │   ├── ProjectsSection.js
+        │   │   ├── PipelinesSection.js
+        │   │   ├── RetentionSection.js
+        │   │   ├── SystemSection.js
+        │   │   ├── UsersListSection.js
+        │   │   ├── ProjectsListSection.js
+        │   │   ├── ActivityFeedSection.js
+        │   │   ├── AlertSettingsSection.js
+        │   │   └── MetricCard.js
+        │   ├── project/            # Refactored project components
+        │   │   ├── index.js
+        │   │   ├── DataPreviewSection.js
+        │   │   ├── RecommendationsSection.js
+        │   │   └── ProjectHeader.js
+        │   ├── DashboardLayout.js  # Shared layout with collapsible sidebar
+        │   └── ui/                 # Shadcn UI components
+        └── pages/
+            ├── AdminDashboard.js   # Refactored (~180 lines)
+            └── ProjectView.js      # Refactored with DashboardLayout
+```
+
+---
 *Last Updated: February 14, 2026*
 *All analytics features work completely OFFLINE with NO API costs!*
 *Magic Analysis provides one-click insights using local ML methods only - no external AI services required!*
