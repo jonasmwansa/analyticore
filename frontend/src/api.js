@@ -135,6 +135,11 @@ export const adminAPI = {
   getFunnelAnalytics: () => api.get('/saas-admin/analytics/funnel'),
   getActivityFeed: (limit = 50) => api.get(`/saas-admin/analytics/feed?limit=${limit}`),
   getSystemHealth: () => api.get('/saas-admin/analytics/health'),
+  
+  // Alert Settings
+  getAlertSettings: () => api.get('/saas-admin/settings/alerts'),
+  updateAlertSettings: (data) => api.put('/saas-admin/settings/alerts/update', data),
+  testAlertEmail: () => api.post('/saas-admin/settings/alerts/test-email'),
 };
 
 export const notificationsAPI = {
