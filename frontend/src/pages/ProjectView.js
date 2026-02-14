@@ -228,8 +228,8 @@ function ProjectView({ user }) {
               data-testid="tab-upload"
               className="data-[state=active]:bg-[#6366F1] data-[state=active]:text-white rounded-md"
             >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Data
+              <Database className="w-4 h-4 mr-2" />
+              Data Sources
             </TabsTrigger>
             <TabsTrigger 
               value="preview" 
