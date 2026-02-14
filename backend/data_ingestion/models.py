@@ -7,6 +7,7 @@ class DataSource(models.Model):
         ('file', 'File Upload'),
         ('mysql', 'MySQL Database'),
         ('postgresql', 'PostgreSQL Database'),
+        ('google_sheets', 'Google Sheets'),
         ('api', 'REST API'),
         ('csv_url', 'CSV URL'),
     ]
