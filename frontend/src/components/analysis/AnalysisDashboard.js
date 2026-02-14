@@ -582,7 +582,7 @@ export default function AnalysisDashboard({ projectId }) {
             className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-md"
           >
             <Sparkles className="w-4 h-4 mr-2" />
-            AI Insights
+            Insights
           </TabsTrigger>
           <TabsTrigger 
             value="actions"
@@ -591,6 +591,14 @@ export default function AnalysisDashboard({ projectId }) {
           >
             <Settings2 className="w-4 h-4 mr-2" />
             Actions
+          </TabsTrigger>
+          <TabsTrigger 
+            value="ml"
+            data-testid="tab-ml"
+            className="data-[state=active]:bg-indigo-500 data-[state=active]:text-white rounded-md"
+          >
+            <Brain className="w-4 h-4 mr-2" />
+            ML Models
           </TabsTrigger>
         </TabsList>
 
