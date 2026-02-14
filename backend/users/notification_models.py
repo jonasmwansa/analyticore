@@ -61,6 +61,7 @@ class Notification(models.Model):
         ('pipeline_complete', 'Pipeline Complete'),
         ('pipeline_failed', 'Pipeline Failed'),
         ('system', 'System Notification'),
+        ('system_alert', 'System Alert'),
     ]
     
     PRIORITY_LEVELS = [
