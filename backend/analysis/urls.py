@@ -22,6 +22,7 @@ urlpatterns = [
     # Magic Analysis endpoints
     path('<uuid:project_id>/magic-analyze', magic_views.run_magic_analysis, name='magic-analyze'),
     path('<uuid:project_id>/magic-apply-cleaning', magic_views.apply_magic_cleaning, name='magic-apply-cleaning'),
+    path('<uuid:project_id>/magic-export', magic_views.export_analysis_report, name='magic-export'),
     
     # ML endpoints
     path('<uuid:project_id>/ml/info', ml_views.get_ml_info, name='ml-info'),
