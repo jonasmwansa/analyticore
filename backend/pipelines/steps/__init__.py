@@ -1,5 +1,5 @@
-from .base import PipelineStep
-from .context import PipelineContext
+from pipelines.base import PipelineStep
+from pipelines.context import PipelineContext
 import pandas as pd
 import numpy as np
 from typing import Dict, Any
