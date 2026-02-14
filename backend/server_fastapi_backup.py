@@ -1,4 +1,13 @@
-from fastapi import FastAPI, APIRouter, HTTPException, UploadFile, File, Depends, Request, Response
+from fastapi import (
+    FastAPI,
+    APIRouter,
+    HTTPException,
+    UploadFile,
+    File,
+    Depends,
+    Request,
+    Response,
+)
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
@@ -23,20 +32,21 @@ import asyncio
 import aiohttp
 
 ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+load_dotenv(ROOT_DIR / ".env")
 
-mongo_url = os.environ['MONGO_URL']
+mongo_url = os.environ["MONGO_URL"]
 client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+db = client[os.environ["DB_NAME"]]
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
 
 security = HTTPBearer(auto_error=False)
 
-JWT_SECRET = os.environ.get('JWT_SECRET_KEY')
-JWT_ALGORITHM = os.environ.get('JWT_ALGORITHM', 'HS256')
-JWT_EXPIRATION_DAYS = int(os.environ.get('JWT_EXPIRATION_DAYS', 7))
+JWT_SECRET = os.environ.get("JWT_SECRET_KEY")
+JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM", "HS256")
+JWT_EXPIRATION_DAYS = int(os.environ.get("JWT_EXPIRATION_DAYS", 7))
+
 
 class User(BaseModel):
     user_id: str
@@ -45,20 +55,24 @@ class User(BaseModel):
     is_verified: bool = False
     created_at: datetime
 
+
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
     name: str
 
+
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+
 
 class SessionData(BaseModel):
     user_id: str
     email: str
     name: str
     session_id: str
+
 
 class Project(BaseModel):
     project_id: str
@@ -71,9 +85,11 @@ class Project(BaseModel):
     row_count: Optional[int] = None
     column_count: Optional[int] = None
 
+
 class ProjectCreate(BaseModel):
     name: str
     source_type: str
+
 
 class DataStatistics(BaseModel):
     total_rows: int
@@ -82,6 +98,7 @@ class DataStatistics(BaseModel):
     data_types: Dict[str, str]
     numeric_stats: Optional[Dict[str, Any]] = None
 
+
 class AIRecommendation(BaseModel):
     column: str
     issue: str
@@ -89,47 +106,53 @@ class AIRecommendation(BaseModel):
     action_type: str
     parameters: Optional[Dict[str, Any]] = None
 
+
 class TransformationRule(BaseModel):
     column: str
     action: str
     parameters: Dict[str, Any]
 
-async def get_current_user(request: Request, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)):
+
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+):
     token = None
-    
-    if request.cookies.get('session_token'):
-        token = request.cookies.get('session_token')
+
+    if request.cookies.get("session_token"):
+        token = request.cookies.get("session_token")
     elif credentials:
         token = credentials.credentials
-    
+
     if not token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id = payload.get('user_id')
+        user_id = payload.get("user_id")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token")
-        
+
         user_doc = await db.users.find_one({"user_id": user_id}, {"_id": 0})
         if not user_doc:
             raise HTTPException(status_code=401, detail="User not found")
-        
+
         return User(**user_doc)
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+
 async def send_verification_email(email: str, token: str, name: str):
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', 'http://localhost:3000')
+    frontend_url = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:3000")
     verification_link = f"{frontend_url}/verify-email?token={token}"
-    
+
     message = MIMEMultipart("alternative")
     message["Subject"] = "Verify Your AnalytiCore Account"
-    message["From"] = os.environ.get('DEFAULT_FROM_EMAIL')
+    message["From"] = os.environ.get("DEFAULT_FROM_EMAIL")
     message["To"] = email
-    
+
     html = f"""
     <html>
       <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -150,96 +173,108 @@ async def send_verification_email(email: str, token: str, name: str):
       </body>
     </html>
     """
-    
+
     message.attach(MIMEText(html, "html"))
-    
+
     try:
         await aiosmtplib.send(
             message,
-            hostname=os.environ.get('EMAIL_HOST'),
-            port=int(os.environ.get('EMAIL_PORT')),
-            username=os.environ.get('EMAIL_HOST_USER'),
-            password=os.environ.get('EMAIL_HOST_PASSWORD'),
-            start_tls=True
+            hostname=os.environ.get("EMAIL_HOST"),
+            port=int(os.environ.get("EMAIL_PORT")),
+            username=os.environ.get("EMAIL_HOST_USER"),
+            password=os.environ.get("EMAIL_HOST_PASSWORD"),
+            start_tls=True,
         )
     except Exception as e:
         logging.error(f"Failed to send email: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to send verification email")
+
 
 @api_router.post("/auth/register")
 async def register(user_data: UserRegister):
     existing_user = await db.users.find_one({"email": user_data.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
-    
-    hashed_password = bcrypt.hashpw(user_data.password.encode('utf-8'), bcrypt.gensalt())
+
+    hashed_password = bcrypt.hashpw(
+        user_data.password.encode("utf-8"), bcrypt.gensalt()
+    )
     user_id = f"user_{uuid.uuid4().hex[:12]}"
     verification_token = uuid.uuid4().hex
-    
+
     user_doc = {
         "user_id": user_id,
         "email": user_data.email,
         "name": user_data.name,
-        "password_hash": hashed_password.decode('utf-8'),
+        "password_hash": hashed_password.decode("utf-8"),
         "is_verified": False,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.users.insert_one(user_doc)
-    
-    await db.verification_tokens.insert_one({
-        "token": verification_token,
-        "user_id": user_id,
         "created_at": datetime.now(timezone.utc).isoformat(),
-        "expires_at": (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
-    })
-    
+    }
+
+    await db.users.insert_one(user_doc)
+
+    await db.verification_tokens.insert_one(
+        {
+            "token": verification_token,
+            "user_id": user_id,
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "expires_at": (
+                datetime.now(timezone.utc) + timedelta(hours=24)
+            ).isoformat(),
+        }
+    )
+
     await send_verification_email(user_data.email, verification_token, user_data.name)
-    
-    return {"message": "Registration successful. Please check your email to verify your account."}
+
+    return {
+        "message": "Registration successful. Please check your email to verify your account."
+    }
+
 
 @api_router.get("/auth/verify-email")
 async def verify_email(token: str):
     token_doc = await db.verification_tokens.find_one({"token": token})
     if not token_doc:
         raise HTTPException(status_code=400, detail="Invalid verification token")
-    
-    expires_at = datetime.fromisoformat(token_doc['expires_at'])
+
+    expires_at = datetime.fromisoformat(token_doc["expires_at"])
     if expires_at.tzinfo is None:
         expires_at = expires_at.replace(tzinfo=timezone.utc)
-    
+
     if expires_at < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="Verification token expired")
-    
+
     await db.users.update_one(
-        {"user_id": token_doc['user_id']},
-        {"$set": {"is_verified": True}}
+        {"user_id": token_doc["user_id"]}, {"$set": {"is_verified": True}}
     )
-    
+
     await db.verification_tokens.delete_one({"token": token})
-    
+
     return {"message": "Email verified successfully"}
+
 
 @api_router.post("/auth/login")
 async def login(credentials: UserLogin, response: Response):
     user_doc = await db.users.find_one({"email": credentials.email})
     if not user_doc:
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    if not bcrypt.checkpw(credentials.password.encode('utf-8'), user_doc['password_hash'].encode('utf-8')):
+
+    if not bcrypt.checkpw(
+        credentials.password.encode("utf-8"), user_doc["password_hash"].encode("utf-8")
+    ):
         raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    if not user_doc.get('is_verified', False):
+
+    if not user_doc.get("is_verified", False):
         raise HTTPException(status_code=403, detail="Please verify your email first")
-    
+
     token_payload = {
-        "user_id": user_doc['user_id'],
-        "email": user_doc['email'],
-        "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS)
+        "user_id": user_doc["user_id"],
+        "email": user_doc["email"],
+        "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS),
     }
-    
+
     token = jwt.encode(token_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    
+
     response.set_cookie(
         key="session_token",
         value=token,
@@ -247,17 +282,18 @@ async def login(credentials: UserLogin, response: Response):
         secure=True,
         samesite="none",
         max_age=JWT_EXPIRATION_DAYS * 24 * 60 * 60,
-        path="/"
+        path="/",
     )
-    
+
     return {
         "user": {
-            "user_id": user_doc['user_id'],
-            "email": user_doc['email'],
-            "name": user_doc['name']
+            "user_id": user_doc["user_id"],
+            "email": user_doc["email"],
+            "name": user_doc["name"],
         },
-        "token": token
+        "token": token,
     }
+
 
 @api_router.get("/auth/session")
 async def handle_google_auth_session(session_id: str, response: Response):
@@ -265,35 +301,35 @@ async def handle_google_auth_session(session_id: str, response: Response):
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data",
-                headers={"X-Session-ID": session_id}
+                headers={"X-Session-ID": session_id},
             ) as resp:
                 if resp.status != 200:
                     raise HTTPException(status_code=401, detail="Invalid session")
-                
+
                 data = await resp.json()
-        
-        user_doc = await db.users.find_one({"email": data['email']}, {"_id": 0})
-        
+
+        user_doc = await db.users.find_one({"email": data["email"]}, {"_id": 0})
+
         if not user_doc:
             user_id = f"user_{uuid.uuid4().hex[:12]}"
             user_doc = {
                 "user_id": user_id,
-                "email": data['email'],
-                "name": data['name'],
-                "picture": data.get('picture'),
+                "email": data["email"],
+                "name": data["name"],
+                "picture": data.get("picture"),
                 "is_verified": True,
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
             await db.users.insert_one(user_doc)
-        
+
         token_payload = {
-            "user_id": user_doc['user_id'],
-            "email": user_doc['email'],
-            "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS)
+            "user_id": user_doc["user_id"],
+            "email": user_doc["email"],
+            "exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXPIRATION_DAYS),
         }
-        
+
         token = jwt.encode(token_payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
-        
+
         response.set_cookie(
             key="session_token",
             value=token,
@@ -301,39 +337,47 @@ async def handle_google_auth_session(session_id: str, response: Response):
             secure=True,
             samesite="none",
             max_age=JWT_EXPIRATION_DAYS * 24 * 60 * 60,
-            path="/"
+            path="/",
         )
-        
+
         return {
             "user": {
-                "user_id": user_doc['user_id'],
-                "email": user_doc['email'],
-                "name": user_doc['name']
+                "user_id": user_doc["user_id"],
+                "email": user_doc["email"],
+                "name": user_doc["name"],
             }
         }
     except Exception as e:
         logging.error(f"Session error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to process session")
 
+
 @api_router.get("/auth/me")
 async def get_me(current_user: User = Depends(get_current_user)):
     return current_user
+
 
 @api_router.post("/auth/logout")
 async def logout(response: Response):
     response.delete_cookie(key="session_token", path="/")
     return {"message": "Logged out successfully"}
 
+
 @api_router.get("/projects")
 async def get_projects(current_user: User = Depends(get_current_user)):
-    projects = await db.projects.find({"user_id": current_user.user_id}, {"_id": 0}).to_list(100)
+    projects = await db.projects.find(
+        {"user_id": current_user.user_id}, {"_id": 0}
+    ).to_list(100)
     for project in projects:
-        if isinstance(project.get('created_at'), str):
-            project['created_at'] = datetime.fromisoformat(project['created_at'])
+        if isinstance(project.get("created_at"), str):
+            project["created_at"] = datetime.fromisoformat(project["created_at"])
     return projects
 
+
 @api_router.post("/projects")
-async def create_project(project_data: ProjectCreate, current_user: User = Depends(get_current_user)):
+async def create_project(
+    project_data: ProjectCreate, current_user: User = Depends(get_current_user)
+):
     project_id = f"proj_{uuid.uuid4().hex[:12]}"
     project_doc = {
         "project_id": project_id,
@@ -341,109 +385,122 @@ async def create_project(project_data: ProjectCreate, current_user: User = Depen
         "name": project_data.name,
         "source_type": project_data.source_type,
         "status": "created",
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.projects.insert_one(project_doc)
-    project_doc['created_at'] = datetime.fromisoformat(project_doc['created_at'])
-    return Project(**{k: v for k, v in project_doc.items() if k != '_id'})
+    project_doc["created_at"] = datetime.fromisoformat(project_doc["created_at"])
+    return Project(**{k: v for k, v in project_doc.items() if k != "_id"})
+
 
 @api_router.post("/projects/{project_id}/upload")
 async def upload_file(
     project_id: str,
     file: UploadFile = File(...),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    project = await db.projects.find_one({"project_id": project_id, "user_id": current_user.user_id})
+    project = await db.projects.find_one(
+        {"project_id": project_id, "user_id": current_user.user_id}
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     contents = await file.read()
     file_path = f"/tmp/{project_id}_{file.filename}"
-    
+
     with open(file_path, "wb") as f:
         f.write(contents)
-    
+
     try:
-        if file.filename.endswith('.csv'):
+        if file.filename.endswith(".csv"):
             df = pd.read_csv(file_path)
-        elif file.filename.endswith(('.xlsx', '.xls')):
+        elif file.filename.endswith((".xlsx", ".xls")):
             df = pd.read_excel(file_path)
-        elif file.filename.endswith('.json'):
+        elif file.filename.endswith(".json"):
             df = pd.read_json(file_path)
         else:
             raise HTTPException(status_code=400, detail="Unsupported file format")
-        
+
         stats = {
             "total_rows": len(df),
             "total_columns": len(df.columns),
             "columns": df.columns.tolist(),
             "data_types": {col: str(dtype) for col, dtype in df.dtypes.items()},
             "missing_values": df.isnull().sum().to_dict(),
-            "sample_data": df.head(5).to_dict('records')
+            "sample_data": df.head(5).to_dict("records"),
         }
-        
+
         await db.projects.update_one(
             {"project_id": project_id},
-            {"$set": {
-                "file_path": file_path,
-                "filename": file.filename,
-                "row_count": len(df),
-                "column_count": len(df.columns),
-                "status": "uploaded",
-                "statistics": stats
-            }}
+            {
+                "$set": {
+                    "file_path": file_path,
+                    "filename": file.filename,
+                    "row_count": len(df),
+                    "column_count": len(df.columns),
+                    "status": "uploaded",
+                    "statistics": stats,
+                }
+            },
         )
-        
+
         return {"message": "File uploaded successfully", "statistics": stats}
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to process file: {str(e)}")
 
+
 @api_router.get("/projects/{project_id}/data")
-async def get_project_data(project_id: str, current_user: User = Depends(get_current_user)):
-    project = await db.projects.find_one({"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0})
+async def get_project_data(
+    project_id: str, current_user: User = Depends(get_current_user)
+):
+    project = await db.projects.find_one(
+        {"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0}
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    if not project.get('file_path'):
+
+    if not project.get("file_path"):
         raise HTTPException(status_code=400, detail="No data uploaded yet")
-    
+
     try:
-        file_path = project['file_path']
-        if file_path.endswith('.csv'):
+        file_path = project["file_path"]
+        if file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
-        elif file_path.endswith(('.xlsx', '.xls')):
+        elif file_path.endswith((".xlsx", ".xls")):
             df = pd.read_excel(file_path)
-        elif file_path.endswith('.json'):
+        elif file_path.endswith(".json"):
             df = pd.read_json(file_path)
-        
+
         return {
-            "data": df.head(100).to_dict('records'),
+            "data": df.head(100).to_dict("records"),
             "total_rows": len(df),
-            "columns": df.columns.tolist()
+            "columns": df.columns.tolist(),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load data: {str(e)}")
 
+
 @api_router.post("/projects/{project_id}/analyze")
 async def analyze_data(project_id: str, current_user: User = Depends(get_current_user)):
-    project = await db.projects.find_one({"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0})
+    project = await db.projects.find_one(
+        {"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0}
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    if not project.get('file_path'):
+
+    if not project.get("file_path"):
         raise HTTPException(status_code=400, detail="No data uploaded yet")
-    
+
     try:
-        file_path = project['file_path']
-        if file_path.endswith('.csv'):
+        file_path = project["file_path"]
+        if file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
-        elif file_path.endswith(('.xlsx', '.xls')):
+        elif file_path.endswith((".xlsx", ".xls")):
             df = pd.read_excel(file_path)
-        elif file_path.endswith('.json'):
+        elif file_path.endswith(".json"):
             df = pd.read_json(file_path)
-        
-        stats = project.get('statistics', {})
-        
+
+        stats = project.get("statistics", {})
+
         analysis_prompt = f"""
         You are a data cleaning expert. Analyze this dataset and provide actionable recommendations.
         
@@ -474,157 +531,167 @@ async def analyze_data(project_id: str, current_user: User = Depends(get_current
         
         Return ONLY valid JSON array, no additional text.
         """
-        
+
         chat = LlmChat(
-            api_key=os.environ.get('EMERGENT_LLM_KEY'),
+            api_key=os.environ.get("EMERGENT_LLM_KEY"),
             session_id=f"analysis_{project_id}",
-            system_message="You are a data analysis expert. Always respond with valid JSON."
+            system_message="You are a data analysis expert. Always respond with valid JSON.",
         )
         chat.with_model("openai", "gpt-5.2")
-        
+
         message = UserMessage(text=analysis_prompt)
         response = await chat.send_message(message)
-        
+
         try:
             recommendations = json.loads(response)
         except:
             response_clean = response.strip()
-            if response_clean.startswith('```json'):
+            if response_clean.startswith("```json"):
                 response_clean = response_clean[7:]
-            if response_clean.endswith('```'):
+            if response_clean.endswith("```"):
                 response_clean = response_clean[:-3]
             recommendations = json.loads(response_clean.strip())
-        
+
         await db.projects.update_one(
             {"project_id": project_id},
-            {"$set": {
-                "ai_recommendations": recommendations,
-                "analyzed_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {
+                "$set": {
+                    "ai_recommendations": recommendations,
+                    "analyzed_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
         )
-        
+
         return {"recommendations": recommendations}
     except Exception as e:
         logging.error(f"Analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
+
 @api_router.post("/projects/{project_id}/transform")
 async def apply_transformations(
     project_id: str,
     rules: List[TransformationRule],
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
 ):
-    project = await db.projects.find_one({"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0})
+    project = await db.projects.find_one(
+        {"project_id": project_id, "user_id": current_user.user_id}, {"_id": 0}
+    )
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
-    if not project.get('file_path'):
+
+    if not project.get("file_path"):
         raise HTTPException(status_code=400, detail="No data uploaded yet")
-    
+
     try:
-        file_path = project['file_path']
-        if file_path.endswith('.csv'):
+        file_path = project["file_path"]
+        if file_path.endswith(".csv"):
             df = pd.read_csv(file_path)
-        elif file_path.endswith(('.xlsx', '.xls')):
+        elif file_path.endswith((".xlsx", ".xls")):
             df = pd.read_excel(file_path)
-        elif file_path.endswith('.json'):
+        elif file_path.endswith(".json"):
             df = pd.read_json(file_path)
-        
+
         original_shape = df.shape
-        
+
         for rule in rules:
             column = rule.column
             action = rule.action
             params = rule.parameters
-            
+
             if action == "fill_missing":
-                strategy = params.get('strategy', 'mean')
-                if strategy == 'mean':
+                strategy = params.get("strategy", "mean")
+                if strategy == "mean":
                     df[column].fillna(df[column].mean(), inplace=True)
-                elif strategy == 'median':
+                elif strategy == "median":
                     df[column].fillna(df[column].median(), inplace=True)
-                elif strategy == 'mode':
+                elif strategy == "mode":
                     df[column].fillna(df[column].mode()[0], inplace=True)
-                elif strategy == 'forward_fill':
-                    df[column].fillna(method='ffill', inplace=True)
-                elif strategy == 'constant':
-                    df[column].fillna(params.get('value', 0), inplace=True)
-            
+                elif strategy == "forward_fill":
+                    df[column].fillna(method="ffill", inplace=True)
+                elif strategy == "constant":
+                    df[column].fillna(params.get("value", 0), inplace=True)
+
             elif action == "remove_duplicates":
                 df.drop_duplicates(inplace=True)
-            
+
             elif action == "convert_type":
-                target_type = params.get('target_type')
-                if target_type == 'numeric':
-                    df[column] = pd.to_numeric(df[column], errors='coerce')
-                elif target_type == 'datetime':
-                    df[column] = pd.to_datetime(df[column], errors='coerce')
-                elif target_type == 'string':
+                target_type = params.get("target_type")
+                if target_type == "numeric":
+                    df[column] = pd.to_numeric(df[column], errors="coerce")
+                elif target_type == "datetime":
+                    df[column] = pd.to_datetime(df[column], errors="coerce")
+                elif target_type == "string":
                     df[column] = df[column].astype(str)
-            
+
             elif action == "remove_outliers":
-                if df[column].dtype in ['int64', 'float64']:
+                if df[column].dtype in ["int64", "float64"]:
                     Q1 = df[column].quantile(0.25)
                     Q3 = df[column].quantile(0.75)
                     IQR = Q3 - Q1
                     lower = Q1 - 1.5 * IQR
                     upper = Q3 + 1.5 * IQR
                     df = df[(df[column] >= lower) & (df[column] <= upper)]
-            
+
             elif action == "rename_column":
-                new_name = params.get('new_name')
+                new_name = params.get("new_name")
                 if new_name:
                     df.rename(columns={column: new_name}, inplace=True)
-        
-        cleaned_path = file_path.replace('.csv', '_cleaned.csv').replace('.xlsx', '_cleaned.xlsx')
-        
-        if cleaned_path.endswith('.csv'):
+
+        cleaned_path = file_path.replace(".csv", "_cleaned.csv").replace(
+            ".xlsx", "_cleaned.xlsx"
+        )
+
+        if cleaned_path.endswith(".csv"):
             df.to_csv(cleaned_path, index=False)
-        elif cleaned_path.endswith('.xlsx'):
+        elif cleaned_path.endswith(".xlsx"):
             df.to_excel(cleaned_path, index=False)
-        
+
         new_stats = {
             "total_rows": len(df),
             "total_columns": len(df.columns),
             "columns": df.columns.tolist(),
-            "missing_values": df.isnull().sum().to_dict()
+            "missing_values": df.isnull().sum().to_dict(),
         }
-        
+
         await db.projects.update_one(
             {"project_id": project_id},
-            {"$set": {
-                "cleaned_file_path": cleaned_path,
-                "cleaned_statistics": new_stats,
-                "status": "transformed",
-                "transformed_at": datetime.now(timezone.utc).isoformat()
-            }}
+            {
+                "$set": {
+                    "cleaned_file_path": cleaned_path,
+                    "cleaned_statistics": new_stats,
+                    "status": "transformed",
+                    "transformed_at": datetime.now(timezone.utc).isoformat(),
+                }
+            },
         )
-        
+
         return {
             "message": "Transformations applied successfully",
             "original_shape": original_shape,
             "new_shape": df.shape,
-            "statistics": new_stats
+            "statistics": new_stats,
         }
     except Exception as e:
         logging.error(f"Transform error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Transformation failed: {str(e)}")
+
 
 app.include_router(api_router)
 
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
+
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
