@@ -116,6 +116,15 @@ function SignIn() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                <div className="text-right mt-2">
+                  <Link 
+                    to="/forgot-password" 
+                    className="text-sm text-[#6366F1] hover:underline"
+                    data-testid="forgot-password-link"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
               </div>
 
               <Button
