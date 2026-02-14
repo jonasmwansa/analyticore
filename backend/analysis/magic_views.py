@@ -303,7 +303,7 @@ def export_analysis_report(request, project_id):
                 'Content-Disposition': f'attachment; filename="{safe_name}_analysis_report.json"'
             })
         
-        # For CSV, create plain text response
+        # For CSV, create plain text response wrapped in JSON for download
         if export_format == 'csv':
             output_lines = []
             
@@ -343,10 +343,12 @@ def export_analysis_report(request, project_id):
             
             csv_content = '\n'.join(output_lines)
             
-            # Return as Response with content type override
-            response = HttpResponse(csv_content, content_type='text/csv')
-            response['Content-Disposition'] = f'attachment; filename="{safe_name}_analysis_report.csv"'
-            return response
+            # Return as JSON with the CSV content for client-side download
+            return Response({
+                'filename': f'{safe_name}_analysis_report.csv',
+                'content_type': 'text/csv',
+                'content': csv_content
+            })
         
         # For Excel, create binary response
         if export_format == 'excel':
