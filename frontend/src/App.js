@@ -11,6 +11,10 @@ import AdminDashboard from './pages/AdminDashboard';
 import AuthCallback from './pages/AuthCallback';
 import NotificationSettings from './pages/NotificationSettings';
 import ScheduledPipelines from './pages/ScheduledPipelines';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import ResetPassword from './pages/ResetPassword';
+import SecuritySettings from './pages/SecuritySettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -27,6 +31,10 @@ function AppRouter() {
       <Route path="/signin" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<TermsOfService />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/forgot-password" element={<ResetPassword />} />
       <Route
         path="/dashboard"
         element={
@@ -56,6 +64,14 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <NotificationSettings />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/security"
+        element={
+          <ProtectedRoute>
+            <SecuritySettings />
           </ProtectedRoute>
         }
       />
