@@ -45,6 +45,9 @@ AnalytiCore is a comprehensive SaaS data analytics platform that provides:
 - **Scheduled Pipelines**: Automated recurring analysis jobs
 - **Admin Analytics**: Comprehensive user metrics, system health monitoring
 - **Security**: Government-grade security with 2FA, password policies, audit logging
+- **Magic Analysis**: One-click comprehensive analysis with plain-English insights
+- **Export Reports**: Export analysis reports in Excel, CSV, or JSON formats
+- **Responsive Layout**: Collapsible sidebar navigation with mobile support
 
 ---
 
