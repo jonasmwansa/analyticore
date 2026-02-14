@@ -1,0 +1,16 @@
+id,name,age,salary,department,hire_date
+1,Alice,28,55000,Engineering,2023-01-15
+2,Bob,35,65000,Sales,2022-06-20
+3,Carol,42,78000,Engineering,2021-03-10
+4,David,31,52000,Marketing,2023-05-01
+5,Eve,26,48000,Sales,2024-01-05
+6,Frank,38,72000,Engineering,2020-11-18
+7,Grace,45,82000,Management,2019-08-22
+8,Henry,29,54000,Marketing,2023-09-15
+9,Ivy,33,61000,Sales,2022-02-28
+10,Jack,40,75000,Engineering,2021-07-12
+11,Kate,27,49000,Marketing,2024-02-01
+12,Leo,36,68000,Sales,2021-04-15
+13,Mia,44,80000,Management,2020-01-10
+14,Nick,32,59000,Engineering,2022-10-05
+15,Olive,39,71000,Sales,2020-09-20
