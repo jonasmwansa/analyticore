@@ -6,11 +6,11 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 ## Tech Stack
 - **Backend:** Django REST Framework 5.2
 - **Frontend:** React 18 with Tailwind CSS
-- **Database:** MySQL (MariaDB)
+- **Database:** SQLite (development) / MySQL (production)
 - **Cache/Queue:** Redis + Celery
 - **Authentication:** DRF Token Authentication
 - **Charting:** Recharts
-- **Analytics:** Rule-based algorithms (pandas, numpy, scipy) - NO AI COSTS
+- **Analytics:** Rule-based algorithms (pandas, numpy, scipy, scikit-learn) - NO AI COSTS
 
 ## Core Features - ALL WORK OFFLINE & FREE
 
@@ -28,10 +28,10 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - [x] Project detail view
 - [x] Delete projects
 
-#### 3. File Upload & Data Ingestion
-- [x] CSV file upload
-- [x] Excel (.xlsx, .xls) file upload
-- [x] JSON file upload
+#### 3. Data Ingestion (Multi-Source)
+- [x] **File Upload:** CSV, Excel (.xlsx, .xls), JSON
+- [x] **Google Sheets Integration:** OAuth 2.0 flow, spreadsheet picker, sheet selection
+- [x] **Database Connections:** MySQL and PostgreSQL with test connection and table selection
 - [x] Automatic column type detection
 - [x] Data preview (first 100 rows)
 
@@ -76,24 +76,67 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - [x] Data type conversion suggestions
 - [x] Column naming improvements
 
-#### 11. Data Export (FREE)
+#### 11. Machine Learning Pipeline (FREE - scikit-learn)
+- [x] **Model Training:** Regression (Linear, Ridge, Random Forest) & Classification (Logistic, Decision Tree, Random Forest)
+- [x] **Auto-ML:** Automatic model selection and hyperparameter optimization
+- [x] **Clustering:** K-Means with elbow method for optimal K
+- [x] **Feature Importance:** Visualization of feature contributions
+- [x] **PCA:** Dimensionality reduction analysis
+
+#### 12. Data Export (FREE)
 - [x] Export to CSV, Excel (.xlsx), JSON
 
-#### 12. Notification System
+#### 13. Notification System
 - [x] Email, In-App, Push Notifications
 
 ### Backlog (Future Tasks)
 
-#### P1 - High Priority
-- [ ] Google Sheets integration
-- [ ] Database source connections
-
 #### P2 - Medium Priority
 - [ ] Stripe billing integration
-- [ ] Scheduled pipelines
+- [ ] Scheduled pipelines with Celery Beat
+- [ ] Webhook notifications
+
+## Data Source Integration Details
+
+### Google Sheets (Requires Configuration)
+**Environment Variables Required:**
+```
+GOOGLE_SHEETS_CLIENT_ID=your_client_id
+GOOGLE_SHEETS_CLIENT_SECRET=your_client_secret
+```
+- OAuth 2.0 authentication flow
+- List user's spreadsheets
+- Select specific sheet within spreadsheet
+- Import data directly into project
+
+### Database Connections
+**MySQL:**
+- Host, Port, Database, Username, Password
+- Test connection before import
+- Select table or write custom SQL query
+
+**PostgreSQL:**
+- Host, Port, Database, Username, Password
+- Test connection before import
+- Select table or write custom SQL query
+
+## API Endpoints
+
+### Integration APIs
+- `GET /api/integrations/google-sheets/status` - Check Google Sheets connection status
+- `GET /api/integrations/google-sheets/auth` - Get OAuth authorization URL
+- `GET /api/integrations/google-sheets/callback` - OAuth callback handler
+- `POST /api/integrations/google-sheets/disconnect` - Disconnect Google Sheets
+- `GET /api/integrations/google-sheets/list` - List user's spreadsheets
+- `GET /api/integrations/google-sheets/{id}/metadata` - Get spreadsheet metadata
+- `POST /api/integrations/google-sheets/{id}/preview` - Preview sheet data
+- `POST /api/integrations/google-sheets/{project_id}/import` - Import sheet data to project
+- `POST /api/integrations/mysql/test` - Test MySQL connection
+- `POST /api/integrations/postgresql/test` - Test PostgreSQL connection
+- `POST /api/integrations/database/{project_id}/import` - Import database data to project
 
 ## Credentials
-- **Admin:** admin@analyticore.com / admin123
+- **Test User:** test@example.com / testpass123
 
 ---
 *Last Updated: February 14, 2026*
