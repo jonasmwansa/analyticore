@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
-  Clock, Play, Pause, Trash2, RefreshCw, Plus, 
+  Clock, Play, Pause, Trash2, Plus, 
   CheckCircle2, XCircle, AlertCircle, Calendar,
-  BarChart3, Settings, ChevronRight, Loader2
+  BarChart3, Settings, Loader2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { pipelinesAPI, projectsAPI } from '../api';
+import DashboardLayout from '../components/DashboardLayout';
 
 function ScheduledPipelines({ user }) {
   const navigate = useNavigate();
