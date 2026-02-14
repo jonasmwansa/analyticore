@@ -815,6 +815,13 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
           </CardContent>
         </Card>
       )}
+
+      {/* Enhanced Export Modal */}
+      <EnhancedExportModal 
+        open={showEnhancedExport}
+        onOpenChange={setShowEnhancedExport}
+        projectId={projectId}
+      />
     </div>
   );
 }
