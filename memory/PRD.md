@@ -89,6 +89,32 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 #### 13. Notification System
 - [x] Email, In-App, Push Notifications
 
+#### 14. Enhanced Admin Dashboard (NEW - Feb 14, 2026)
+- [x] **Dark-themed sidebar navigation** with 10 sections
+- [x] **User Metrics:** DAU, WAU, MAU, Stickiness (DAU/MAU), Growth Rate, Churn, Returning Users
+- [x] **User Growth Charts:** 30-day growth trend with Recharts
+- [x] **Activity Analytics:** Top actions, resource types, hourly distribution, power users
+- [x] **Project Analytics:** Project status/source breakdown, transformation stats
+- [x] **Pipeline Analytics:** Active/paused pipelines, success rate, run history
+- [x] **Retention & Funnels:** Day 1/7/30 retention, cohort analysis, user journey funnel
+- [x] **System Health:** DB response time, error rate, status indicators (healthy/warning/critical)
+- [x] **All Users List:** Complete user table with email, status, projects, plan
+- [x] **All Projects List:** Complete project table with user, source, status, rows
+- [x] **Activity Feed:** Real-time activity log
+
+### Admin Dashboard API Endpoints
+- `GET /api/saas-admin/analytics/summary` - Dashboard overview
+- `GET /api/saas-admin/analytics/users` - User metrics (DAU/WAU/MAU/stickiness)
+- `GET /api/saas-admin/analytics/user-growth?days=30` - User growth chart
+- `GET /api/saas-admin/analytics/activity?days=30` - Activity analytics
+- `GET /api/saas-admin/analytics/projects?days=30` - Project analytics
+- `GET /api/saas-admin/analytics/pipelines?days=30` - Pipeline analytics
+- `GET /api/saas-admin/analytics/subscriptions` - Subscription breakdown
+- `GET /api/saas-admin/analytics/retention` - Cohort retention analysis
+- `GET /api/saas-admin/analytics/funnel` - User journey funnel
+- `GET /api/saas-admin/analytics/feed?limit=50` - Activity feed
+- `GET /api/saas-admin/analytics/health` - System health metrics
+
 ### Backlog (Future Tasks)
 
 #### P2 - Medium Priority
