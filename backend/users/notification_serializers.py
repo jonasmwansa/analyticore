@@ -43,9 +43,11 @@ class NotificationPreferenceSerializer(serializers.ModelSerializer):
         fields = [
             'email_on_analysis_complete', 'email_on_data_issues',
             'email_on_export_ready', 'email_on_upload_complete',
+            'email_on_pipeline_complete', 'email_on_pipeline_failed',
             'email_digest_frequency', 'push_enabled',
             'push_on_analysis_complete', 'push_on_data_issues',
-            'push_on_export_ready', 'inapp_enabled',
+            'push_on_export_ready', 'push_on_pipeline_complete',
+            'push_on_pipeline_failed', 'inapp_enabled',
             'updated_at'
         ]
         read_only_fields = ['updated_at']
