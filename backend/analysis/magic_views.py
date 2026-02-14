@@ -350,8 +350,9 @@ def export_analysis_report(request, project_id):
                 'content': csv_content
             })
         
-        # For Excel, create binary response
+        # For Excel, create binary response as base64
         if export_format == 'excel':
+            import base64
             output = io.BytesIO()
             
             with pd.ExcelWriter(output, engine='openpyxl') as writer:
@@ -435,12 +436,15 @@ def export_analysis_report(request, project_id):
                     stats_df.to_excel(writer, sheet_name='Statistics Summary')
             
             output.seek(0)
-            response = HttpResponse(
-                output.read(),
-                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            )
-            response['Content-Disposition'] = f'attachment; filename="{safe_name}_analysis_report.xlsx"'
-            return response
+            excel_base64 = base64.b64encode(output.read()).decode('utf-8')
+            
+            # Return as JSON with base64 content for client-side download
+            return Response({
+                'filename': f'{safe_name}_analysis_report.xlsx',
+                'content_type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'content': excel_base64,
+                'encoding': 'base64'
+            })
         
         # Default - return JSON
         return Response(analysis)
