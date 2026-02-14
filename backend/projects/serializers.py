@@ -6,11 +6,12 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = [
             'project_id', 'name', 'description', 'source_type', 'status',
-            'original_filename', 'row_count', 'column_count', 'statistics',
+            'original_filename', 'file_path', 'processed_file_path',
+            'row_count', 'column_count', 'statistics',
             'ai_recommendations', 'applied_transformations', 'created_at',
             'updated_at', 'completed_at'
         ]
-        read_only_fields = ['project_id', 'created_at', 'updated_at', 'completed_at']
+        read_only_fields = ['project_id', 'created_at', 'updated_at', 'completed_at', 'file_path', 'processed_file_path']
 
 class ProjectCreateSerializer(serializers.ModelSerializer):
     class Meta:
