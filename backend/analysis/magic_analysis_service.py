@@ -441,7 +441,7 @@ class MagicAnalysisService:
                             ],
                             'reason': f'{valid_pct:.1f}% of values are valid numbers'
                         })
-                except:
+                except Exception:
                     pass
         
         # Suggestions for text normalization
