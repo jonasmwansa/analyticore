@@ -139,4 +139,25 @@ export const notificationsAPI = {
     api.post('/notifications/test', { type, send_email: sendEmail, send_push: sendPush }),
 };
 
+export const integrationsAPI = {
+  // Google Sheets
+  getSheetsStatus: () => api.get('/integrations/google-sheets/status'),
+  getSheetsAuthUrl: () => api.get('/integrations/google-sheets/auth'),
+  disconnectSheets: () => api.post('/integrations/google-sheets/disconnect'),
+  listSpreadsheets: () => api.get('/integrations/google-sheets/list'),
+  getSpreadsheetMetadata: (spreadsheetId) => api.get(`/integrations/google-sheets/${spreadsheetId}/metadata`),
+  previewSpreadsheet: (spreadsheetId, data) => api.post(`/integrations/google-sheets/${spreadsheetId}/preview`, data),
+  importFromSheets: (projectId, data) => api.post(`/integrations/google-sheets/${projectId}/import`, data),
+  
+  // Database Connections
+  testMySQLConnection: (data) => api.post('/integrations/mysql/test', data),
+  testPostgreSQLConnection: (data) => api.post('/integrations/postgresql/test', data),
+  importFromDatabase: (projectId, data) => api.post(`/integrations/database/${projectId}/import`, data),
+  
+  // Data Sources
+  listDataSources: () => api.get('/integrations/sources'),
+  createDataSource: (data) => api.post('/integrations/sources/create', data),
+  deleteDataSource: (sourceId) => api.delete(`/integrations/sources/${sourceId}`),
+};
+
 export default api;
