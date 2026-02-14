@@ -100,6 +100,15 @@ function Dashboard({ user }) {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#64748B]">Welcome, {user?.name}</span>
+            <Button
+              variant="ghost"
+              onClick={() => navigate('/schedules')}
+              data-testid="schedules-btn"
+              className="text-slate-700 hover:text-[#6366F1]"
+            >
+              <Clock className="w-5 h-5 mr-2" />
+              Schedules
+            </Button>
             <NotificationBell />
             <Button
               variant="ghost"
