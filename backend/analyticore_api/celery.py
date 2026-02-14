@@ -17,6 +17,15 @@ app.conf.beat_schedule = {
         'task': 'exports.tasks.cleanup_old_exports',
         'schedule': crontab(hour=2, minute=0),
     },
+    # System Health Monitoring
+    'check-system-health': {
+        'task': 'users.health_monitoring.check_system_health',
+        'schedule': crontab(minute='*/15'),  # Every 15 minutes
+    },
+    'daily-health-summary': {
+        'task': 'users.health_monitoring.daily_health_summary',
+        'schedule': crontab(hour=8, minute=0),  # Daily at 8 AM
+    },
 }
 
 @app.task(bind=True)
