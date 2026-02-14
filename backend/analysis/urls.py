@@ -12,4 +12,7 @@ urlpatterns = [
     path('<uuid:project_id>/chart', views.get_chart_data, name='chart'),
     path('<uuid:project_id>/column', views.get_column_info, name='column-info'),
     path('<uuid:project_id>/columns', views.get_columns, name='columns'),
+    path('<uuid:project_id>/insights', views.get_quick_insights, name='insights'),
+    path('<uuid:project_id>/column-actions', views.get_column_actions, name='column-actions'),
+    path('<uuid:project_id>/apply-action', views.apply_column_action, name='apply-action'),
 ]
