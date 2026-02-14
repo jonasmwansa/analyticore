@@ -176,9 +176,29 @@ class AnalyticoreAPITester:
             },
             session=self.admin_session
         )
-        if success and 'project_id' in response:
-            self.project_id = response['project_id']
-            print(f"   📁 Created project: {self.project_id}")
+        
+        if success:
+            # After creation, get the project list to find the created project
+            if 'project_id' in response:
+                self.project_id = response['project_id']
+                print(f"   📁 Created project: {self.project_id}")
+            else:
+                # If project_id not in response, get it from project list
+                projects_success, projects_response = self.run_test(
+                    "Get Projects to Find Created Project",
+                    "GET",
+                    "projects/",
+                    200,
+                    session=self.admin_session
+                )
+                if projects_success and isinstance(projects_response, list) and len(projects_response) > 0:
+                    # Find the most recent project
+                    latest_project = max(projects_response, key=lambda p: p.get('created_at', ''))
+                    self.project_id = latest_project.get('project_id')
+                    print(f"   📁 Found created project ID: {self.project_id}")
+                else:
+                    print(f"   ⚠️  Could not retrieve project ID from response")
+        
         return success
 
     def test_get_projects(self):
