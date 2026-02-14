@@ -668,7 +668,70 @@ Body: { "target": "price", "task": "regression" }
 Response: { "best_model": "...", "results": [...] }
 ```
 
-### 11.6 Pipeline Endpoints
+### 11.6 Magic Analysis Endpoints (One-Click Analysis)
+
+```
+# Run comprehensive magic analysis
+GET /api/analysis/{project_id}/magic-analyze
+Response: {
+  "executive_summary": {
+    "text": "Plain-English summary...",
+    "quality_score": 90,
+    "quality_label": "excellent",
+    "stats": { "total_rows": 1000, "total_columns": 10, ... }
+  },
+  "data_profile": {
+    "columns": [{ "name": "age", "type": "numeric", "statistics": {...} }]
+  },
+  "data_quality": {
+    "quality_score": 90,
+    "issues": [{ "type": "missing_values", "severity": "warning", "message": "..." }]
+  },
+  "cleaning_suggestions": [{
+    "column": "age",
+    "issue": "missing_values",
+    "priority": "high",
+    "options": [
+      { "strategy": "mean", "description": "Fill with mean", "recommended": true }
+    ]
+  }],
+  "key_insights": [{
+    "type": "correlation",
+    "priority": "high",
+    "title": "Strong Relationship Found",
+    "message": "'age' and 'salary' have strong positive correlation (0.85)"
+  }],
+  "suggested_visualizations": [{
+    "type": "histogram",
+    "title": "Age Distribution",
+    "columns": ["age"]
+  }]
+}
+
+# Apply selected cleaning operations
+POST /api/analysis/{project_id}/magic-apply-cleaning
+Body: {
+  "actions": [{
+    "column": "age",
+    "issue": "missing_values",
+    "strategy": "mean"
+  }]
+}
+Response: {
+  "message": "Cleaning applied",
+  "original_shape": [1000, 10],
+  "new_shape": [1000, 10],
+  "changes": [{ "column": "age", "status": "success", "values_filled": 50 }]
+}
+
+# Export analysis report
+GET /api/analysis/{project_id}/magic-export?export_format=excel
+Query params: export_format = json | csv | excel
+Response (JSON/CSV): { "filename": "...", "content_type": "...", "content": "..." }
+Response (Excel): { "filename": "...", "content_type": "...", "content": "<base64>", "encoding": "base64" }
+```
+
+### 11.7 Pipeline Endpoints
 
 ```
 GET /api/pipelines/
