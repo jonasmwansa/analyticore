@@ -409,6 +409,30 @@ function NotificationSettings({ user }) {
                         data-testid="push-export-toggle"
                       />
                     </div>
+
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <Label className="text-[#0F172A] font-medium">Pipeline Complete</Label>
+                        <p className="text-sm text-[#64748B]">Push notification when scheduled pipeline finishes</p>
+                      </div>
+                      <Switch
+                        checked={preferences.push_on_pipeline_complete}
+                        onCheckedChange={() => handleToggle('push_on_pipeline_complete')}
+                        data-testid="push-pipeline-complete-toggle"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between py-2">
+                      <div>
+                        <Label className="text-[#0F172A] font-medium">Pipeline Failed</Label>
+                        <p className="text-sm text-[#64748B]">Push notification when scheduled pipeline fails</p>
+                      </div>
+                      <Switch
+                        checked={preferences.push_on_pipeline_failed}
+                        onCheckedChange={() => handleToggle('push_on_pipeline_failed')}
+                        data-testid="push-pipeline-failed-toggle"
+                      />
+                    </div>
                   </>
                 )}
               </div>
