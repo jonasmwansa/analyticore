@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   Database, Users, FolderKanban, Activity, TrendingUp, 
-  ArrowLeft, BarChart3, PieChart, Calendar 
+  ArrowLeft, BarChart3, PieChart, Calendar, CheckCircle2
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
