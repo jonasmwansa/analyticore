@@ -281,6 +281,30 @@ function NotificationSettings({ user }) {
                 />
               </div>
 
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label className="text-[#0F172A] font-medium">Pipeline Complete</Label>
+                  <p className="text-sm text-[#64748B]">When a scheduled pipeline finishes successfully</p>
+                </div>
+                <Switch
+                  checked={preferences.email_on_pipeline_complete}
+                  onCheckedChange={() => handleToggle('email_on_pipeline_complete')}
+                  data-testid="email-pipeline-complete-toggle"
+                />
+              </div>
+
+              <div className="flex items-center justify-between py-2">
+                <div>
+                  <Label className="text-[#0F172A] font-medium">Pipeline Failed</Label>
+                  <p className="text-sm text-[#64748B]">When a scheduled pipeline fails or encounters errors</p>
+                </div>
+                <Switch
+                  checked={preferences.email_on_pipeline_failed}
+                  onCheckedChange={() => handleToggle('email_on_pipeline_failed')}
+                  data-testid="email-pipeline-failed-toggle"
+                />
+              </div>
+
               <div className="pt-4 border-t border-slate-100">
                 <Label className="text-[#0F172A] font-medium mb-2 block">Email Frequency</Label>
                 <Select 
