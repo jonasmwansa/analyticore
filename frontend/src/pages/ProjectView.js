@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { 
   Database, ArrowLeft, Upload, FileSpreadsheet, Wand2, Check, 
@@ -12,8 +11,7 @@ import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Checkbox } from '../components/ui/checkbox';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { projectsAPI } from '../api';
 
 function ProjectView({ user }) {
   const { projectId } = useParams();
@@ -34,19 +32,16 @@ function ProjectView({ user }) {
 
   const fetchProject = async () => {
     try {
-      const response = await axios.get(`${API_URL}/projects`, {
-        withCredentials: true
-      });
-      const proj = response.data.find(p => p.project_id === projectId);
-      setProject(proj);
+      const response = await projectsAPI.get(projectId);
+      setProject(response.data);
       
-      if (proj?.status === 'uploaded' || proj?.status === 'transformed') {
+      if (response.data.status === 'uploaded' || response.data.status === 'transformed') {
         setActiveTab('preview');
         fetchDataPreview();
       }
       
-      if (proj?.ai_recommendations) {
-        setRecommendations(proj.ai_recommendations);
+      if (response.data.ai_recommendations && response.data.ai_recommendations.length > 0) {
+        setRecommendations(response.data.ai_recommendations);
       }
     } catch (error) {
       toast.error('Failed to load project');
@@ -57,9 +52,7 @@ function ProjectView({ user }) {
 
   const fetchDataPreview = async () => {
     try {
-      const response = await axios.get(`${API_URL}/projects/${projectId}/data`, {
-        withCredentials: true
-      });
+      const response = await projectsAPI.getData(projectId);
       setDataPreview(response.data);
     } catch (error) {
       console.error('Failed to load data preview');
@@ -70,15 +63,9 @@ function ProjectView({ user }) {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('file', file);
-
     setUploading(true);
     try {
-      await axios.post(`${API_URL}/projects/${projectId}/upload`, formData, {
-        withCredentials: true,
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await projectsAPI.uploadFile(projectId, file);
       toast.success('File uploaded successfully!');
       await fetchProject();
       setActiveTab('preview');
@@ -93,11 +80,7 @@ function ProjectView({ user }) {
   const analyzeData = async () => {
     setAnalyzing(true);
     try {
-      const response = await axios.post(
-        `${API_URL}/projects/${projectId}/analyze`,
-        {},
-        { withCredentials: true }
-      );
+      const response = await projectsAPI.analyze(projectId);
       setRecommendations(response.data.recommendations);
       setActiveTab('recommendations');
       toast.success('AI analysis complete!');
@@ -131,11 +114,7 @@ function ProjectView({ user }) {
 
     setTransforming(true);
     try {
-      await axios.post(
-        `${API_URL}/projects/${projectId}/transform`,
-        selectedRules,
-        { withCredentials: true }
-      );
+      await projectsAPI.transform(projectId, selectedRules);
       toast.success('Transformations applied successfully!');
       await fetchProject();
       await fetchDataPreview();
