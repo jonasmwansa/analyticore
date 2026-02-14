@@ -374,3 +374,237 @@ def get_columns(request, project_id):
         'categorical': categorical_cols,
         'datetime': datetime_cols
     })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_quick_insights(request, project_id):
+    """Generate AI-powered quick insights summary for the project data"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        from .insights import InsightsGenerator
+        from .statistics import StatisticalAnalyzer
+        
+        # Get statistics first
+        analyzer = StatisticalAnalyzer(df)
+        statistics = analyzer.get_descriptive_statistics()
+        correlation = analyzer.get_correlation_matrix()
+        
+        # Generate AI insights
+        generator = InsightsGenerator(str(project_id))
+        insights = generator.generate_quick_insights(statistics, correlation)
+        
+        return Response(insights)
+    except Exception as e:
+        return Response({'detail': f'Insights generation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_column_actions(request, project_id):
+    """Get recommended actions for all columns or a specific column"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    column = request.query_params.get('column')
+    
+    try:
+        from .insights import InsightsGenerator, get_all_column_actions
+        from .statistics import StatisticalAnalyzer
+        
+        analyzer = StatisticalAnalyzer(df)
+        statistics = analyzer.get_descriptive_statistics()
+        
+        if column:
+            # Get actions for a specific column
+            col_type = None
+            col_stats = None
+            
+            if column in statistics.get('numeric', {}):
+                col_type = 'numeric'
+                col_stats = statistics['numeric'][column]
+            elif column in statistics.get('categorical', {}):
+                col_type = 'categorical'
+                col_stats = statistics['categorical'][column]
+            elif column in statistics.get('datetime', {}):
+                col_type = 'datetime'
+                col_stats = statistics['datetime'][column]
+            
+            if not col_stats:
+                return Response({'detail': f'Column {column} not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            generator = InsightsGenerator(str(project_id))
+            actions = generator.generate_column_actions(column, col_stats, col_type)
+            return Response(actions)
+        else:
+            # Get actions for all columns
+            all_actions = get_all_column_actions(statistics)
+            return Response({'columns': all_actions})
+    
+    except Exception as e:
+        return Response({'detail': f'Action generation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def apply_column_action(request, project_id):
+    """Apply a specific action to a column"""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    df = load_project_dataframe(project)
+    if df is None:
+        return Response({'detail': 'No data available'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    column = request.data.get('column')
+    action = request.data.get('action')
+    strategy = request.data.get('strategy')
+    value = request.data.get('value')
+    
+    if not column or not action:
+        return Response({'detail': 'Column and action are required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    if column not in df.columns:
+        return Response({'detail': f'Column {column} not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    try:
+        original_shape = df.shape
+        changes_made = []
+        
+        if action == 'fill_missing':
+            null_count_before = df[column].isnull().sum()
+            
+            if strategy == 'mean':
+                df[column].fillna(df[column].mean(), inplace=True)
+            elif strategy == 'median':
+                df[column].fillna(df[column].median(), inplace=True)
+            elif strategy == 'mode':
+                mode_val = df[column].mode()
+                if len(mode_val) > 0:
+                    df[column].fillna(mode_val[0], inplace=True)
+            elif strategy == 'forward_fill':
+                df[column].fillna(method='ffill', inplace=True)
+            elif strategy == 'backward_fill':
+                df[column].fillna(method='bfill', inplace=True)
+            elif strategy == 'constant' and value is not None:
+                df[column].fillna(value, inplace=True)
+            
+            null_count_after = df[column].isnull().sum()
+            changes_made.append(f"Filled {null_count_before - null_count_after} missing values using {strategy}")
+        
+        elif action == 'drop_rows':
+            rows_before = len(df)
+            df.dropna(subset=[column], inplace=True)
+            rows_after = len(df)
+            changes_made.append(f"Dropped {rows_before - rows_after} rows with missing values")
+        
+        elif action == 'remove_outliers':
+            if strategy == 'iqr':
+                Q1 = df[column].quantile(0.25)
+                Q3 = df[column].quantile(0.75)
+                IQR = Q3 - Q1
+                lower = Q1 - 1.5 * IQR
+                upper = Q3 + 1.5 * IQR
+                rows_before = len(df)
+                df = df[(df[column] >= lower) & (df[column] <= upper)]
+                rows_after = len(df)
+                changes_made.append(f"Removed {rows_before - rows_after} outliers using IQR method")
+        
+        elif action == 'cap_outliers':
+            Q1 = df[column].quantile(0.25)
+            Q3 = df[column].quantile(0.75)
+            IQR = Q3 - Q1
+            lower = Q1 - 1.5 * IQR
+            upper = Q3 + 1.5 * IQR
+            capped_low = (df[column] < lower).sum()
+            capped_high = (df[column] > upper).sum()
+            df[column] = df[column].clip(lower=lower, upper=upper)
+            changes_made.append(f"Capped {capped_low} low values and {capped_high} high values")
+        
+        elif action == 'convert_type':
+            target_type = strategy or request.data.get('target_type')
+            if target_type == 'numeric':
+                df[column] = pd.to_numeric(df[column], errors='coerce')
+                changes_made.append(f"Converted {column} to numeric type")
+            elif target_type == 'datetime':
+                df[column] = pd.to_datetime(df[column], errors='coerce')
+                changes_made.append(f"Converted {column} to datetime type")
+            elif target_type == 'string':
+                df[column] = df[column].astype(str)
+                changes_made.append(f"Converted {column} to string type")
+            elif target_type == 'category':
+                df[column] = df[column].astype('category')
+                changes_made.append(f"Converted {column} to category type")
+        
+        elif action == 'text_transform':
+            if strategy == 'trim':
+                df[column] = df[column].astype(str).str.strip()
+                changes_made.append(f"Trimmed whitespace from {column}")
+            elif strategy == 'lowercase':
+                df[column] = df[column].astype(str).str.lower()
+                changes_made.append(f"Converted {column} to lowercase")
+            elif strategy == 'uppercase':
+                df[column] = df[column].astype(str).str.upper()
+                changes_made.append(f"Converted {column} to uppercase")
+            elif strategy == 'remove_special':
+                df[column] = df[column].astype(str).str.replace(r'[^a-zA-Z0-9\s]', '', regex=True)
+                changes_made.append(f"Removed special characters from {column}")
+        
+        elif action == 'remove_duplicates':
+            rows_before = len(df)
+            if column:
+                df.drop_duplicates(subset=[column], keep='first', inplace=True)
+            else:
+                df.drop_duplicates(keep='first', inplace=True)
+            rows_after = len(df)
+            changes_made.append(f"Removed {rows_before - rows_after} duplicate rows")
+        
+        # Save processed data
+        processed_path = os.path.join(
+            settings.PIPELINE_STORAGE_PATH,
+            'processed',
+            f"{project_id}_processed.csv"
+        )
+        df.to_csv(processed_path, index=False)
+        
+        project.processed_file_path = processed_path
+        project.status = 'transformed'
+        project.save()
+        
+        # Log the transformation
+        TransformationLog.objects.create(
+            project=project,
+            step_name='Column Action',
+            action=action,
+            target=column,
+            reason=f"User applied {action} with {strategy or 'default'} strategy",
+            impact={'changes': changes_made},
+            confidence=1.0
+        )
+        
+        return Response({
+            'message': 'Action applied successfully',
+            'changes': changes_made,
+            'original_shape': original_shape,
+            'new_shape': df.shape
+        })
+    
+    except Exception as e:
+        return Response({'detail': f'Action failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
