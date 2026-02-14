@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 import {
   Sparkles, CheckCircle2, AlertCircle, AlertTriangle, Info, TrendingUp,
-  BarChart3, PieChart, LineChart, Play, RefreshCw, Download, ChevronRight,
+  BarChart3, PieChart, Play, RefreshCw, ChevronRight,
   Settings2, Zap, Target, Brain, Link2, Calendar, FileSpreadsheet
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { Checkbox } from '../ui/checkbox';
-import { Progress } from '../ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { analysisAPI } from '../../api';
