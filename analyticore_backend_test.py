@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 class AnalyticoreAPITester:
-    def __init__(self, base_url="https://etl-autopilot.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://analyticore-preview.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()
         self.admin_session = requests.Session()
