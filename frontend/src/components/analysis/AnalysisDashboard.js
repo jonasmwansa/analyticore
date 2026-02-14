@@ -544,7 +544,15 @@ export default function AnalysisDashboard({ projectId }) {
 
       {/* Main Analysis Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="bg-white border border-slate-200 p-1 rounded-lg">
+        <TabsList className="bg-white border border-slate-200 p-1 rounded-lg flex-wrap">
+          <TabsTrigger 
+            value="magic"
+            data-testid="tab-magic"
+            className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white rounded-md"
+          >
+            <Zap className="w-4 h-4 mr-2" />
+            Magic Analysis
+          </TabsTrigger>
           <TabsTrigger 
             value="overview"
             data-testid="tab-overview"
@@ -602,6 +610,11 @@ export default function AnalysisDashboard({ projectId }) {
             ML Models
           </TabsTrigger>
         </TabsList>
+
+        {/* Magic Analysis Tab */}
+        <TabsContent value="magic" data-testid="magic-analysis-content">
+          <MagicAnalysis projectId={projectId} onDataChanged={loadAllData} />
+        </TabsContent>
 
         {/* Statistics Tab */}
         <TabsContent value="overview" data-testid="statistics-content">
