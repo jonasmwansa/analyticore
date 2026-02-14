@@ -285,7 +285,7 @@ export default function AnalysisDashboard({ projectId }) {
   const [selectedChartType, setSelectedChartType] = useState('bar');
   const [xColumn, setXColumn] = useState('');
   const [yColumn, setYColumn] = useState('');
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('magic');
 
   useEffect(() => {
     if (projectId) {
