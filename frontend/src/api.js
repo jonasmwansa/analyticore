@@ -73,6 +73,14 @@ export const analysisAPI = {
   },
   getColumnInfo: (id, column) => api.get(`/analysis/${id}/column?column=${column}`),
   getColumns: (id) => api.get(`/analysis/${id}/columns`),
+  getQuickInsights: (id) => api.get(`/analysis/${id}/insights`),
+  getColumnActions: (id, column = null) => {
+    const url = column 
+      ? `/analysis/${id}/column-actions?column=${column}`
+      : `/analysis/${id}/column-actions`;
+    return api.get(url);
+  },
+  applyColumnAction: (id, data) => api.post(`/analysis/${id}/apply-action`, data),
 };
 
 export const exportsAPI = {
