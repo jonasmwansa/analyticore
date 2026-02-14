@@ -84,6 +84,14 @@ function AppRouter() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/compare"
+        element={
+          <ProtectedRoute>
+            <CompareProjects />
+          </ProtectedRoute>
+        }
+      />
     </Routes>
   );
 }
