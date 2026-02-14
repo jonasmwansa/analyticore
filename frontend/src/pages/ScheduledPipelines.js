@@ -341,9 +341,7 @@ function ScheduledPipelines({ user }) {
             </DialogContent>
           </Dialog>
         </div>
-      </nav>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Stats Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
