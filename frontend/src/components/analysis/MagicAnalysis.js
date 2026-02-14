@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import {
   Sparkles, CheckCircle2, AlertCircle, AlertTriangle, Info, TrendingUp,
   BarChart3, PieChart, Play, RefreshCw, ChevronRight, Download,
-  Settings2, Zap, Target, Brain, Link2, Calendar, FileSpreadsheet, FileJson, FileText
+  Settings2, Zap, Target, Brain, Link2, Calendar, FileSpreadsheet, FileJson, FileText, MoreHorizontal
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
@@ -16,8 +16,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '../ui/dropdown-menu';
 import { analysisAPI } from '../../api';
+import EnhancedExportModal from '../EnhancedExportModal';
 
 const SEVERITY_COLORS = {
   critical: 'bg-red-100 text-red-700 border-red-200',
