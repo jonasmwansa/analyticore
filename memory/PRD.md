@@ -260,7 +260,55 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
     - `ProjectHeader.js` - Navigation and export controls
   - Consistent sidebar navigation across all pages
 
-### Export Analysis API Endpoints (NEW)
+#### 21. Enhanced Export Feature (Feb 14, 2026) ✨ NEW
+- [x] **Summary Statistics Export:**
+  - Export descriptive statistics for all columns (CSV/Excel)
+  - Includes: count, mean, std, min, 25%, median, 75%, max, skewness, kurtosis
+  - Separate sheets for numeric and categorical columns in Excel
+- [x] **Correlation Matrix Export:**
+  - Export correlation coefficients (CSV/Excel)
+  - Supports Pearson, Spearman, and Kendall methods
+  - Includes top correlations list with strength classification
+- [x] **Distribution Analysis Export:**
+  - Export histogram data, box plot statistics (CSV/Excel)
+  - Includes normality tests (Shapiro-Wilk, D'Agostino) results
+  - Per-column distribution type and outlier counts
+- [x] **Visualization Export (PNG/SVG):**
+  - Correlation Heatmap - interactive color-coded matrix
+  - Distribution Charts - histogram + box plot for numeric columns
+  - Summary Dashboard - overview with multiple charts (missing values, data types, stats)
+
+#### 22. Compare Projects Feature (Feb 14, 2026) ✨ NEW
+- [x] **Compare Projects API:**
+  - GET `/api/projects/comparable/` - List projects with data available for comparison
+  - POST `/api/projects/compare/` - Compare 2-4 projects with quality scores and metrics
+- [x] **Dedicated Compare Page (`/compare`):**
+  - Project selection cards with checkboxes (2-4 projects)
+  - Side-by-side comparison table (quality score, rows, columns, missing %, duplicates, issues)
+  - Charts tab with radar chart and bar charts
+  - Details tab with per-project breakdown cards
+  - Comparison metrics: Best Quality, Most Complete, Most Rows, Fewest Issues
+- [x] **Compare Projects Modal (Dashboard):**
+  - Accessible via "Compare" button on Dashboard
+  - Quick project selection without leaving dashboard
+  - "Open Full Page" link to dedicated compare page
+- [x] **Enhanced Export Modal:**
+  - Integrated into Magic Analysis "Export Report" dropdown
+  - "Advanced Export Options..." opens modal with 6 export types
+  - Format selectors (CSV/Excel/PNG/SVG)
+  - Method selector for correlation (Pearson/Spearman/Kendall)
+
+### Enhanced Export API Endpoints (NEW)
+- `GET /api/exports/{project_id}/export-statistics?export_format=csv|excel` - Export summary statistics
+- `GET /api/exports/{project_id}/export-correlation?export_format=csv|excel&method=pearson|spearman|kendall` - Export correlation matrix
+- `GET /api/exports/{project_id}/export-distribution?export_format=csv|excel` - Export distribution analysis
+- `GET /api/exports/{project_id}/export-visualization?export_format=png|svg&chart_type=correlation|distribution|summary` - Export visualizations
+
+### Compare Projects API Endpoints (NEW)
+- `GET /api/projects/comparable/` - Get list of projects with data for comparison
+- `POST /api/projects/compare/` - Compare 2-4 projects { project_ids: [...] }
+
+### Export Analysis API Endpoints (Updated)
 - `GET /api/analysis/{project_id}/magic-export?export_format=json|csv|excel` - Export comprehensive analysis report
 
 ### Security API Endpoints
