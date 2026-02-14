@@ -100,6 +100,7 @@ function Dashboard({ user }) {
           </div>
           <div className="flex items-center gap-4">
             <span className="text-[#64748B]">Welcome, {user?.name}</span>
+            <NotificationBell />
             <Button
               variant="ghost"
               onClick={handleLogout}
