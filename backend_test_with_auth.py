@@ -16,7 +16,7 @@ import uuid
 import pymongo
 
 class DataPulseAPITesterWithAuth:
-    def __init__(self, base_url="https://insights-dashboard-18.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://magic-analysis.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()
         self.test_user_email = f"verified_test_{datetime.now().strftime('%H%M%S')}@example.com"
