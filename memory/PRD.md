@@ -3,6 +3,8 @@
 ## Overview
 AnalytiCore is a SaaS data analysis pipeline application that enables users to upload, clean, transform, and analyze data with intelligent rule-based recommendations.
 
+**100% Self-Contained Application** - No external platform dependencies. All ML/analysis runs locally using scikit-learn, scipy, and pandas.
+
 ## Tech Stack
 - **Backend:** Django REST Framework 5.2
 - **Frontend:** React 18 with Tailwind CSS
@@ -11,6 +13,9 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - **Authentication:** DRF Token Authentication
 - **Charting:** Recharts
 - **Analytics:** Rule-based algorithms (pandas, numpy, scipy, scikit-learn) - NO AI COSTS
+
+## Changelog
+- **Dec 2025:** Removed unused `EMERGENT_LLM_KEY` from settings.py, removed `emergentintegrations` from requirements.txt, deleted unused backup file `server_fastapi_backup.py`
 
 ## Core Features - ALL WORK OFFLINE & FREE
 
