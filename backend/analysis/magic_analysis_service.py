@@ -510,7 +510,7 @@ class MagicAnalysisService:
                         'recommended': False
                     }
                 ],
-                'reason': f'Duplicates may skew analysis results'
+                'reason': 'Duplicates may skew analysis results'
             })
         
         # Sort by priority
