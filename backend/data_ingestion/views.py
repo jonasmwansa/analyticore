@@ -6,12 +6,32 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
 from django.utils import timezone
 import pandas as pd
+import numpy as np
 import os
 from projects.models import Project
 from .models import DataSource, DataUpload
 from pipelines.context import PipelineContext
 from pipelines.base import Pipeline
 from pipelines.steps import ColumnUnderstandingStep
+
+
+def convert_to_serializable(obj):
+    """Convert numpy types to Python native types for JSON serialization"""
+    if isinstance(obj, dict):
+        return {k: convert_to_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_to_serializable(v) for v in obj]
+    elif isinstance(obj, (np.integer, np.int64, np.int32)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32)):
+        return float(obj) if not np.isnan(obj) else None
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, np.bool_):
+        return bool(obj)
+    elif pd.isna(obj):
+        return None
+    return obj
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
