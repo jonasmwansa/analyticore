@@ -110,6 +110,12 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - **Export Data**: Export data to configured format (CSV/Excel/JSON)
 - **Full Pipeline**: Refresh + Analysis + Cleaning + Export
 
+### Pipeline Notifications
+- **Pipeline Complete**: Email/push notification when pipeline succeeds
+- **Pipeline Failed**: Email/push notification when pipeline fails
+- Configurable in Notification Settings page
+- In-app notifications with bell icon
+
 ### Pipeline Runs
 - Track all executions with status (pending, running, completed, failed)
 - Store logs, duration, rows processed
