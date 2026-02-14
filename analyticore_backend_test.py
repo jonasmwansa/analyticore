@@ -218,7 +218,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "File Upload",
             "POST",
-            f"projects/{self.project_id}/upload/",
+            f"projects/{self.project_id}/upload",
             200,
             files={'file': ('test_data.csv', csv_content, 'text/csv')},
             session=self.admin_session
@@ -238,7 +238,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Get Project Data Preview",
             "GET",
-            f"projects/{self.project_id}/data/",
+            f"projects/{self.project_id}/data",
             200,
             session=self.admin_session
         )
@@ -258,7 +258,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "AI Data Analysis",
             "POST",
-            f"analysis/{self.project_id}/analyze/",
+            f"analysis/{self.project_id}/analyze",
             200,
             session=self.admin_session
         )
@@ -294,7 +294,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Apply Data Transformations",
             "POST",
-            f"analysis/{self.project_id}/transform/",
+            f"analysis/{self.project_id}/transform",
             200,
             data={"rules": transformation_rules},
             session=self.admin_session
@@ -314,7 +314,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Export Data (CSV)",
             "GET",
-            f"exports/{self.project_id}/export/?format=csv",
+            f"exports/{self.project_id}/export?format=csv",
             200,
             session=self.admin_session
         )
@@ -330,7 +330,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Generate Charts",
             "GET", 
-            f"exports/{self.project_id}/charts/?type=summary",
+            f"exports/{self.project_id}/charts?type=summary",
             200,
             session=self.admin_session
         )
@@ -346,7 +346,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "MySQL Connection Test (Invalid Credentials)",
             "POST",
-            "integrations/mysql/test/",
+            "integrations/mysql/test",
             400,  # Expected to fail with invalid credentials
             data={
                 "host": "localhost",
@@ -365,7 +365,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "List Data Sources",
             "GET",
-            "integrations/sources/",
+            "integrations/sources",
             200,
             session=self.admin_session
         )
@@ -381,7 +381,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Admin Dashboard Stats",
             "GET",
-            "saas-admin/dashboard/",
+            "saas-admin/dashboard",
             200,
             session=self.admin_session
         )
@@ -397,7 +397,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Admin Users List", 
             "GET",
-            "saas-admin/users/",
+            "saas-admin/users",
             200,
             session=self.admin_session
         )
@@ -413,7 +413,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "Admin Projects List",
             "GET", 
-            "saas-admin/projects/",
+            "saas-admin/projects",
             200,
             session=self.admin_session
         )
@@ -444,7 +444,7 @@ Iris Chen,200,Miami,1000000,15
         success, response = self.run_test(
             "User Logout",
             "POST",
-            "auth/logout/",
+            "auth/logout",
             200,
             session=self.admin_session
         )
