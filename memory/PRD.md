@@ -139,6 +139,9 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 #### P2 - Medium Priority
 - [ ] Stripe billing integration
 - [ ] Webhook notifications
+- [ ] Real-time WebSocket notifications
+- [ ] Custom alert thresholds configuration (admin UI)
+- [ ] Export analytics reports (PDF/Excel)
 
 ## Scheduled Pipelines Feature
 
