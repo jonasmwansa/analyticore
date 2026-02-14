@@ -1,0 +1,90 @@
+{
+  "summary": "Completed testing of Pipeline Notifications feature for AnalytiCore. Fixed a critical bug in NotificationPreferenceSerializer missing pipeline fields. All 20 backend API tests passed (100%). Frontend UI displays Pipeline Complete and Pipeline Failed toggles correctly in Notification Settings page.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "bugs_fixed": [
+    {
+      "file": "/app/backend/users/notification_serializers.py",
+      "issue": "NotificationPreferenceSerializer was missing pipeline notification fields (email_on_pipeline_complete, email_on_pipeline_failed, push_on_pipeline_complete, push_on_pipeline_failed)",
+      "fix": "Added missing fields to the serializer's fields list"
+    }
+  ],
+  "passed_tests": [
+    "Notification preferences include email_on_pipeline_complete field",
+    "Notification preferences include email_on_pipeline_failed field",
+    "Notification preferences include push_on_pipeline_complete field",
+    "Notification preferences include push_on_pipeline_failed field",
+    "Can update email_on_pipeline_complete preference",
+    "Can update email_on_pipeline_failed preference",
+    "All preference fields present (15 fields total)",
+    "Filter notifications by pipeline_complete type",
+    "Filter notifications by pipeline_failed type",
+    "Pipeline_complete notification exists from previous run",
+    "Pipeline notification has proper metadata (schedule_id, run_id, project_id, action_type, status)",
+    "Pipeline notification has related_object_type and related_object_id",
+    "Running pipeline creates notification",
+    "Can mark pipeline notification as read",
+    "Can delete pipeline notification",
+    "Notification summary returns unread count",
+    "Notification summary returns latest_unread list",
+    "Notification preferences requires auth (401 without token)",
+    "List notifications requires auth",
+    "Notification summary requires auth",
+    "Frontend - Notification Settings page loads correctly",
+    "Frontend - Pipeline Complete toggle visible with data-testid",
+    "Frontend - Pipeline Failed toggle visible with data-testid",
+    "Frontend - Save Settings button works",
+    "Frontend - Notification bell dropdown shows pipeline notification"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_pipeline_notifications.py",
+    "/app/test_reports/pytest/pipeline_notifications_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [],
+  "updated_files": [
+    "/app/backend/users/notification_serializers.py",
+    "/app/backend/tests/test_pipeline_notifications.py"
+  ],
+  "success_rate": {
+    "backend": "100% (20/20 tests passed)",
+    "frontend": "100% (All UI features working correctly)"
+  },
+  "test_credentials": {
+    "test_email": "test@example.com",
+    "test_password": "testpass123",
+    "auth_token": "5adeec057f6c3a6a1ebd551303a2dcc1b0be1c05",
+    "existing_schedule_id": "5efb25bb-f935-48f4-956f-7452b03f617c"
+  },
+  "seed_data_creation": "Tests use existing pipeline schedule and notifications from previous test runs",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Pipeline notifications feature is fully functional. Backend APIs support: filtering notifications by type (pipeline_complete/pipeline_failed), updating preferences for pipeline notifications, creating notifications when pipelines run. Frontend NotificationSettings page at /settings/notifications shows Pipeline Complete and Pipeline Failed toggles in Email Notifications section with proper data-testid attributes. Notification bell dropdown on dashboard shows pipeline notifications. Note: Login route is /signin not /login.",
+  "features_verified": {
+    "backend_endpoints": {
+      "get_preferences": "GET /api/notifications/preferences - Returns all fields including pipeline ones",
+      "update_preferences": "PUT /api/notifications/preferences - Can update pipeline preferences",
+      "list_notifications": "GET /api/notifications/?type=pipeline_complete - Filters work",
+      "notification_summary": "GET /api/notifications/summary - Returns unread count"
+    },
+    "frontend_components": {
+      "notification_settings_page": "/settings/notifications route",
+      "pipeline_complete_toggle": "data-testid='email-pipeline-complete-toggle'",
+      "pipeline_failed_toggle": "data-testid='email-pipeline-failed-toggle'",
+      "push_pipeline_complete_toggle": "data-testid='push-pipeline-complete-toggle' (visible when push enabled)",
+      "push_pipeline_failed_toggle": "data-testid='push-pipeline-failed-toggle' (visible when push enabled)",
+      "notification_bell_dropdown": "Shows pipeline notifications with proper content"
+    },
+    "notification_creation": {
+      "pipeline_complete": "Created via send_pipeline_notification() in tasks.py when run.status='completed'",
+      "pipeline_failed": "Created via send_pipeline_notification() in tasks.py when run.status='failed'"
+    }
+  }
+}
