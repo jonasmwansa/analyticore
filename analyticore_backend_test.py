@@ -210,8 +210,9 @@ class AnalyticoreAPITester:
             200,
             session=self.admin_session
         )
-        if success and isinstance(response, list):
-            print(f"   📊 Found {len(response)} projects")
+        if success and 'results' in response:
+            projects = response['results']
+            print(f"   📊 Found {len(projects)} projects")
         return success
 
     def test_file_upload(self):
