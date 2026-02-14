@@ -26,7 +26,6 @@ class ColumnActionService:
         Returns:
             tuple (DataFrame, list of changes made)
         """
-        original_shape = df.shape
         changes_made = []
         
         action_map = {
