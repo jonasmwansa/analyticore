@@ -208,9 +208,8 @@ def execute_scheduled_pipeline(self, schedule_id):
     schedule.run_count += 1
     schedule.save()
     
-    # Send notification if configured
-    if schedule.pipeline_config.get('notify_on_complete', False):
-        send_pipeline_notification(schedule, run)
+    # Always send notification for pipeline completion/failure
+    send_pipeline_notification(schedule, run)
     
     return {
         'status': run.status,
