@@ -329,3 +329,4 @@ GOOGLE_SHEETS_CLIENT_SECRET=your_client_secret
 ---
 *Last Updated: February 14, 2026*
 *All analytics features work completely OFFLINE with NO API costs!*
+*Magic Analysis provides one-click insights using local ML methods only - no external AI services required!*
