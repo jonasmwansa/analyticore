@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { 
   Database, ArrowLeft, Upload, FileSpreadsheet, Wand2, Check, 
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Checkbox } from '../components/ui/checkbox';
 import { projectsAPI, exportsAPI } from '../api';
 import AnalysisDashboard from '../components/analysis/AnalysisDashboard';
+import DataSourcePicker from '../components/data/DataSourcePicker';
 
 function ProjectView({ user }) {
   const { projectId } = useParams();
