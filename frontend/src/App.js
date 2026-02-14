@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import ProjectView from './pages/ProjectView';
 import AdminDashboard from './pages/AdminDashboard';
 import AuthCallback from './pages/AuthCallback';
+import NotificationSettings from './pages/NotificationSettings';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -46,6 +47,14 @@ function AppRouter() {
         element={
           <ProtectedRoute>
             <ProjectView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings/notifications"
+        element={
+          <ProtectedRoute>
+            <NotificationSettings />
           </ProtectedRoute>
         }
       />
