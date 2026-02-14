@@ -95,6 +95,8 @@ class NotificationService:
             'data_issues': prefs.email_on_data_issues,
             'export_ready': prefs.email_on_export_ready,
             'upload_complete': prefs.email_on_upload_complete,
+            'pipeline_complete': prefs.email_on_pipeline_complete,
+            'pipeline_failed': prefs.email_on_pipeline_failed,
         }
         
         return email_prefs_map.get(notification_type, True)
@@ -109,6 +111,8 @@ class NotificationService:
             'analysis_complete': prefs.push_on_analysis_complete,
             'data_issues': prefs.push_on_data_issues,
             'export_ready': prefs.push_on_export_ready,
+            'pipeline_complete': prefs.push_on_pipeline_complete,
+            'pipeline_failed': prefs.push_on_pipeline_failed,
         }
         
         return push_prefs_map.get(notification_type, True)
