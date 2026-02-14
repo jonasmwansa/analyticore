@@ -81,6 +81,10 @@ export const analysisAPI = {
     return api.get(url);
   },
   applyColumnAction: (id, data) => api.post(`/analysis/${id}/apply-action`, data),
+  
+  // Magic Analysis - One-Click Analysis
+  runMagicAnalysis: (id) => api.get(`/analysis/${id}/magic-analyze`),
+  applyMagicCleaning: (id, actions) => api.post(`/analysis/${id}/magic-apply-cleaning`, { actions }),
 };
 
 export const mlAPI = {
