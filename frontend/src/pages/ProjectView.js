@@ -18,6 +18,7 @@ import DataSourcePicker from '../components/data/DataSourcePicker';
 function ProjectView({ user }) {
   const { projectId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -31,6 +32,17 @@ function ProjectView({ user }) {
 
   useEffect(() => {
     fetchProject();
+    
+    // Check for Google Sheets callback params
+    const params = new URLSearchParams(location.search);
+    if (params.get('sheets_connected') === 'true') {
+      toast.success('Google Sheets connected successfully!');
+      // Clean up URL
+      navigate(location.pathname, { replace: true });
+    } else if (params.get('sheets_error')) {
+      toast.error(`Google Sheets error: ${params.get('sheets_error')}`);
+      navigate(location.pathname, { replace: true });
+    }
   }, [projectId]);
 
   const fetchProject = async () => {
