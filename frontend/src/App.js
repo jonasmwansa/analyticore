@@ -15,6 +15,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import ResetPassword from './pages/ResetPassword';
 import SecuritySettings from './pages/SecuritySettings';
+import CompareProjects from './pages/CompareProjects';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
