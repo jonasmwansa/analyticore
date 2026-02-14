@@ -265,3 +265,184 @@ def _handle_outliers(df, column, strategy):
         'upper_bound': round(float(upper_bound), 4),
         'rows_affected': original_count - len(df) if strategy == 'remove' else 0
     }
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_analysis_report(request, project_id):
+    """
+    Export analysis report in various formats (JSON, CSV summary)
+    """
+    import json
+    from django.http import HttpResponse
+    import pandas as pd
+    
+    export_format = request.query_params.get('format', 'json')
+    
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if not project.file_path:
+        return Response({'detail': 'No data uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        df = DataLoaderService.load_dataframe(project)
+        if df is None:
+            return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Run magic analysis
+        analysis = run_magic_analysis_service(df, project.name)
+        
+        if export_format == 'json':
+            response = HttpResponse(
+                json.dumps(analysis, indent=2, default=str),
+                content_type='application/json'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{project.name}_analysis_report.json"'
+            return response
+        
+        elif export_format == 'csv':
+            # Create summary CSV with multiple sections
+            output_lines = []
+            
+            # Executive Summary
+            output_lines.append('EXECUTIVE SUMMARY')
+            output_lines.append(f'Project,{project.name}')
+            output_lines.append(f'Quality Score,{analysis["executive_summary"]["quality_score"]}')
+            output_lines.append(f'Quality Label,{analysis["executive_summary"]["quality_label"]}')
+            output_lines.append(f'Total Rows,{analysis["executive_summary"]["stats"]["total_rows"]}')
+            output_lines.append(f'Total Columns,{analysis["executive_summary"]["stats"]["total_columns"]}')
+            output_lines.append(f'Missing Values,{analysis["executive_summary"]["stats"]["missing_values"]}')
+            output_lines.append(f'Duplicate Rows,{analysis["executive_summary"]["stats"]["duplicate_rows"]}')
+            output_lines.append('')
+            
+            # Data Quality Issues
+            output_lines.append('DATA QUALITY ISSUES')
+            output_lines.append('Type,Column,Count,Percentage,Severity,Message')
+            for issue in analysis.get('data_quality', {}).get('issues', []):
+                output_lines.append(f'{issue["type"]},{issue.get("column", "")},{issue["count"]},{issue["percentage"]},{issue["severity"]},{issue["message"]}')
+            output_lines.append('')
+            
+            # Key Insights
+            output_lines.append('KEY INSIGHTS')
+            output_lines.append('Type,Priority,Title,Message')
+            for insight in analysis.get('key_insights', []):
+                output_lines.append(f'{insight["type"]},{insight["priority"]},{insight["title"]},"{insight["message"]}"')
+            output_lines.append('')
+            
+            # Column Profile Summary
+            output_lines.append('COLUMN PROFILE')
+            output_lines.append('Column,Type,Missing Count,Missing %,Unique Values')
+            for col in analysis.get('data_profile', {}).get('columns', []):
+                output_lines.append(f'{col["name"]},{col["type"]},{col["missing_count"]},{col["missing_percentage"]},{col["unique_values"]}')
+            
+            csv_content = '\n'.join(output_lines)
+            response = HttpResponse(csv_content, content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{project.name}_analysis_report.csv"'
+            return response
+        
+        elif export_format == 'excel':
+            import io
+            
+            output = io.BytesIO()
+            
+            with pd.ExcelWriter(output, engine='openpyxl') as writer:
+                # Executive Summary Sheet
+                summary_data = {
+                    'Metric': ['Project Name', 'Quality Score', 'Quality Label', 'Total Rows', 
+                              'Total Columns', 'Numeric Columns', 'Categorical Columns', 
+                              'Missing Values', 'Missing %', 'Duplicate Rows'],
+                    'Value': [
+                        project.name,
+                        analysis['executive_summary']['quality_score'],
+                        analysis['executive_summary']['quality_label'],
+                        analysis['executive_summary']['stats']['total_rows'],
+                        analysis['executive_summary']['stats']['total_columns'],
+                        analysis['executive_summary']['stats']['numeric_columns'],
+                        analysis['executive_summary']['stats']['categorical_columns'],
+                        analysis['executive_summary']['stats']['missing_values'],
+                        analysis['executive_summary']['stats']['missing_percentage'],
+                        analysis['executive_summary']['stats']['duplicate_rows']
+                    ]
+                }
+                pd.DataFrame(summary_data).to_excel(writer, sheet_name='Executive Summary', index=False)
+                
+                # Data Quality Sheet
+                quality_issues = analysis.get('data_quality', {}).get('issues', [])
+                if quality_issues:
+                    quality_df = pd.DataFrame(quality_issues)
+                    quality_df.to_excel(writer, sheet_name='Data Quality', index=False)
+                
+                # Key Insights Sheet
+                insights = analysis.get('key_insights', [])
+                if insights:
+                    insights_df = pd.DataFrame(insights)
+                    insights_df.to_excel(writer, sheet_name='Key Insights', index=False)
+                
+                # Column Profile Sheet
+                columns = analysis.get('data_profile', {}).get('columns', [])
+                if columns:
+                    # Flatten nested statistics
+                    flat_cols = []
+                    for col in columns:
+                        flat_col = {
+                            'name': col['name'],
+                            'type': col['type'],
+                            'dtype': col['dtype'],
+                            'missing_count': col['missing_count'],
+                            'missing_percentage': col['missing_percentage'],
+                            'unique_values': col['unique_values']
+                        }
+                        if 'statistics' in col:
+                            for k, v in col['statistics'].items():
+                                flat_col[k] = v
+                        flat_cols.append(flat_col)
+                    pd.DataFrame(flat_cols).to_excel(writer, sheet_name='Column Profile', index=False)
+                
+                # Cleaning Suggestions Sheet
+                suggestions = analysis.get('cleaning_suggestions', [])
+                if suggestions:
+                    suggestions_flat = []
+                    for s in suggestions:
+                        rec_strategy = next((o['strategy'] for o in s.get('options', []) if o.get('recommended')), '')
+                        suggestions_flat.append({
+                            'column': s['column'],
+                            'issue': s['issue'],
+                            'count': s['count'],
+                            'percentage': s['percentage'],
+                            'priority': s['priority'],
+                            'recommended_strategy': rec_strategy,
+                            'reason': s.get('reason', '')
+                        })
+                    pd.DataFrame(suggestions_flat).to_excel(writer, sheet_name='Cleaning Suggestions', index=False)
+                
+                # Correlation Matrix Sheet (if available)
+                numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+                if len(numeric_cols) >= 2:
+                    corr_matrix = df[numeric_cols].corr()
+                    corr_matrix.to_excel(writer, sheet_name='Correlation Matrix')
+                
+                # Statistics Summary Sheet
+                if len(numeric_cols) > 0:
+                    stats_df = df[numeric_cols].describe().T
+                    stats_df.to_excel(writer, sheet_name='Statistics Summary')
+            
+            output.seek(0)
+            response = HttpResponse(
+                output.read(),
+                content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+            response['Content-Disposition'] = f'attachment; filename="{project.name}_analysis_report.xlsx"'
+            return response
+        
+        else:
+            return Response({'detail': 'Invalid export format. Use: json, csv, or excel'}, 
+                          status=status.HTTP_400_BAD_REQUEST)
+    
+    except Exception as e:
+        return Response(
+            {'detail': f'Export failed: {str(e)}'}, 
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
