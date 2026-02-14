@@ -147,13 +147,6 @@ def activity_analytics(request):
         count=Count('id')
     ).order_by('date')
     
-    # Hourly distribution (when are users most active)
-    hourly_activity = usage.annotate(
-        hour=TruncHour('timestamp')
-    ).values('hour').annotate(
-        count=Count('id')
-    ).order_by('hour')
-    
     # Hour of day distribution
     hour_distribution = {}
     for item in usage:
