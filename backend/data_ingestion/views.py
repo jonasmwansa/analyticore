@@ -75,20 +75,20 @@ def upload_file(request, project_id):
         context = pipeline.execute(context)
         
         statistics = {
-            'total_rows': len(df),
-            'total_columns': len(df.columns),
+            'total_rows': int(len(df)),
+            'total_columns': int(len(df.columns)),
             'columns': df.columns.tolist(),
             'data_types': {col: str(dtype) for col, dtype in df.dtypes.items()},
-            'missing_values': df.isnull().sum().to_dict(),
-            'sample_data': df.head(5).to_dict('records'),
-            'column_metadata': {name: {
+            'missing_values': {col: int(v) for col, v in df.isnull().sum().items()},
+            'sample_data': convert_to_serializable(df.head(5).to_dict('records')),
+            'column_metadata': {name: convert_to_serializable({
                 'inferred_type': meta.inferred_type,
                 'confidence': meta.confidence,
                 'missing_percentage': meta.missing_percentage,
                 'unique_count': meta.unique_count,
                 'is_identifier': meta.is_identifier,
                 'statistics': meta.statistics
-            } for name, meta in context.metadata.items()}
+            }) for name, meta in context.metadata.items()}
         }
         
         project.original_filename = filename
