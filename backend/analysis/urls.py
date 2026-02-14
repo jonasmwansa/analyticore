@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import ml_views
+from . import magic_views
 
 app_name = 'analysis'
 
@@ -17,6 +18,10 @@ urlpatterns = [
     path('<uuid:project_id>/insights', views.get_quick_insights, name='insights'),
     path('<uuid:project_id>/column-actions', views.get_column_actions, name='column-actions'),
     path('<uuid:project_id>/apply-action', views.apply_column_action, name='apply-action'),
+    
+    # Magic Analysis endpoints
+    path('<uuid:project_id>/magic-analyze', magic_views.run_magic_analysis, name='magic-analyze'),
+    path('<uuid:project_id>/magic-apply-cleaning', magic_views.apply_magic_cleaning, name='magic-apply-cleaning'),
     
     # ML endpoints
     path('<uuid:project_id>/ml/info', ml_views.get_ml_info, name='ml-info'),
