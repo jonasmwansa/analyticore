@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { authAPI } from '../api';
 
 function VerifyEmail() {
   const [searchParams] = useSearchParams();
@@ -21,12 +19,12 @@ function VerifyEmail() {
       }
 
       try {
-        await axios.get(`${API_URL}/auth/verify-email?token=${token}`);
+        await authAPI.verifyEmail(token);
         setStatus('success');
         toast.success('Email verified successfully!');
       } catch (error) {
         setStatus('error');
-        toast.error(error.response?.data?.detail || 'Verification failed');
+        toast.error(error.response?.data?.detail || error.response?.data?.token?.[0] || 'Verification failed');
       }
     };
 

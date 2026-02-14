@@ -1,9 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { authAPI } from '../api';
 
 function AuthCallback() {
   const navigate = useNavigate();
@@ -25,11 +23,8 @@ function AuthCallback() {
 
     const processSession = async () => {
       try {
-        const response = await axios.get(
-          `${API_URL}/auth/session?session_id=${sessionId}`,
-          { withCredentials: true }
-        );
-
+        const response = await authAPI.googleAuthCallback(sessionId);
+        localStorage.setItem('auth_token', response.data.token);
         toast.success('Successfully signed in!');
         navigate('/dashboard', { state: { user: response.data.user }, replace: true });
       } catch (error) {

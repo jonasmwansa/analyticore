@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import { toast } from 'sonner';
 import { Database, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { authAPI } from '../api';
 
 function SignUp() {
   const navigate = useNavigate();
@@ -24,11 +22,11 @@ function SignUp() {
     setLoading(true);
 
     try {
-      await axios.post(`${API_URL}/auth/register`, formData);
+      await authAPI.register(formData);
       toast.success('Registration successful! Please check your email to verify your account.');
       navigate('/signin');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Registration failed');
+      toast.error(error.response?.data?.detail || error.response?.data?.email?.[0] || 'Registration failed');
     } finally {
       setLoading(false);
     }

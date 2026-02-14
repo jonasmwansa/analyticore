@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+import { authAPI } from '../api';
 
 function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -17,9 +15,7 @@ function ProtectedRoute({ children }) {
 
     const checkAuth = async () => {
       try {
-        const response = await axios.get(`${API_URL}/auth/me`, {
-          withCredentials: true
-        });
+        const response = await authAPI.getMe();
         setUser(response.data);
         setIsAuthenticated(true);
       } catch (error) {
