@@ -826,6 +826,11 @@ export default function AnalysisDashboard({ projectId }) {
         <TabsContent value="actions" data-testid="actions-content">
           <ColumnActions projectId={projectId} onDataChanged={loadAllData} />
         </TabsContent>
+
+        {/* ML Models Tab */}
+        <TabsContent value="ml" data-testid="ml-content">
+          <MLDashboard projectId={projectId} />
+        </TabsContent>
       </Tabs>
     </div>
   );
