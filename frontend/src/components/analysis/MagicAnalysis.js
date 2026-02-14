@@ -232,6 +232,7 @@ export default function MagicAnalysis({ projectId, onDataChanged }) {
   const [selectedCleanings, setSelectedCleanings] = useState({});
   const [cleaningStrategies, setCleaningStrategies] = useState({});
   const [activeTab, setActiveTab] = useState('summary');
+  const [showEnhancedExport, setShowEnhancedExport] = useState(false);
   
   const runAnalysis = async () => {
     setLoading(true);
