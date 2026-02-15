@@ -13,7 +13,7 @@ from datetime import datetime
 from pathlib import Path
 
 class DataPulseAPITester:
-    def __init__(self, base_url="https://data-insights-dev-1.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://magic-analysis-dev.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()
         self.test_user_email = f"test_user_{datetime.now().strftime('%H%M%S')}@example.com"

@@ -10,7 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Load environment variables from .env file
 load_dotenv(BASE_DIR / '.env')
 
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-insecure-analyticore-dev-key-change-in-production')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
@@ -146,8 +146,6 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-
-EMERGENT_LLM_KEY = os.environ.get('EMERGENT_LLM_KEY')
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024
 DATA_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024
