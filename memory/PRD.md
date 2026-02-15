@@ -14,8 +14,13 @@ AnalytiCore is a SaaS data analysis pipeline application that enables users to u
 - **Charting:** Recharts
 - **Analytics:** Rule-based algorithms (pandas, numpy, scipy, scikit-learn) - NO AI COSTS
 
+## Quick Start
+
+See the main [README.md](/README.md) for complete local setup instructions.
+
 ## Changelog
-- **Dec 2025:** Removed unused `EMERGENT_LLM_KEY` from settings.py, removed `emergentintegrations` from requirements.txt, deleted unused backup file `server_fastapi_backup.py`
+- **Dec 2025:** Added comprehensive README with local setup instructions, created `.env.example` template
+- **Dec 2025:** Removed unused `EMERGENT_LLM_KEY` from settings.py and .env, removed `emergentintegrations` from requirements.txt, deleted unused backup file
 
 ## Core Features - ALL WORK OFFLINE & FREE
 
