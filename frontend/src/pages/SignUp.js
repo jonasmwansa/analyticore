@@ -42,10 +42,11 @@ function SignUp() {
       <div className="flex-1 flex items-center justify-center px-6 py-12 bg-[#F8FAFC]">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-4">
+            <Link to="/" className="flex items-center justify-center gap-2 mb-4 hover:opacity-80 transition"
+            >
               <Database className="w-10 h-10 text-[#6366F1]" />
               <span className="text-3xl font-bold text-[#0F172A]">AnalytiCore</span>
-            </div>
+            </Link>
             <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Create your account</h1>
             <p className="text-[#64748B]">Start cleaning your data with AI</p>
           </div>

@@ -1,191 +1,276 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Database, Wand2, Zap, FileSpreadsheet, CheckCircle2, ArrowRight, Upload, BarChart3, Share2 } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Database,
+  Upload,
+  Brain,
+  Wand2,
+  BarChart3,
+  Share2,
+  ArrowRight,
+  Menu,
+  X,
+  Shield,
+  ChevronRight,
+  Rocket,
+  Cloud,
+  PieChart,
+} from "lucide-react";
+import { Button } from "../components/ui/button";
 
 function LandingPage() {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  /* ===== Scroll Effects ===== */
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  /* ===== Reveal Animation ===== */
+  useEffect(() => {
+    const elements = document.querySelectorAll(".reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("active");
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+    elements.forEach((el) => observer.observe(el));
+  }, []);
 
   return (
-    <div className="min-h-screen">
-      <nav className="border-b border-slate-200 bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Database className="w-8 h-8 text-[#6366F1]" />
-            <span className="text-2xl font-bold text-[#0F172A]" style={{ letterSpacing: '-0.02em' }}>AnalytiCore</span>
+    <div className="min-h-screen bg-white text-slate-900 overflow-x-hidden">
+
+      {/* ================= NAVIGATION ================= */}
+      <nav
+        className={`sticky top-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? "bg-white/80 backdrop-blur-xl shadow-lg border-b border-slate-200"
+            : "bg-white/50 backdrop-blur-md"
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+
+          <div
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 cursor-pointer group"
+          >
+            <Database className="w-8 h-8 text-indigo-600 transition-all group-hover:scale-110 group-hover:rotate-6" />
+            <span className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-indigo-600 bg-clip-text text-transparent">
+              AnalytiCore
+            </span>
           </div>
-          <div className="flex gap-3">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/signin')}
-              data-testid="nav-signin-btn"
-              className="text-slate-700 hover:text-[#6366F1]"
-            >
+
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
+            <a href="#features" className="hover:text-indigo-600 transition">
+              Features
+            </a>
+            <a href="#how" className="hover:text-indigo-600 transition">
+              How It Works
+            </a>
+          </div>
+
+          <div className="hidden md:flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate("/signin")}>
               Sign In
             </Button>
             <Button
-              onClick={() => navigate('/signup')}
-              data-testid="nav-signup-btn"
-              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-md shadow-indigo-500/20 rounded-lg px-6"
+              onClick={() => navigate("/signup")}
+              className="relative overflow-hidden bg-indigo-600 text-white px-6 py-2 shadow-xl hover:-translate-y-1 transition-all group"
             >
-              Get Started
+              <span className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-500 opacity-0 group-hover:opacity-20 blur-xl transition-all"></span>
+              Start Free
             </Button>
           </div>
+
+          <button
+            className="md:hidden"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
       </nav>
 
-      <section className="hero-gradient py-20 md:py-32">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-[#0F172A] mb-6" style={{ letterSpacing: '-0.02em', lineHeight: '1.1' }}>
-                From raw data to 
-                <span className="text-[#6366F1]"> actionable insights</span>
-              </h1>
-              <p className="text-lg md:text-xl text-[#64748B] mb-8 leading-relaxed">
-                Upload your data, let us clean and analyze it, and get beautiful visualizations — no expertise required. 
-                <strong className="text-[#0F172A]"> The analytics tool that thinks for you.</strong>
-              </p>
-              <div className="flex gap-4">
-                <Button
-                  size="lg"
-                  onClick={() => navigate('/signup')}
-                  data-testid="hero-cta-btn"
-                  className="bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-lg shadow-indigo-500/30 rounded-lg px-8 h-12 text-base font-semibold"
-                >
-                  Start Free <ArrowRight className="ml-2 w-5 h-5" />
-                </Button>
-                <Button
-                  size="lg"
-                  variant="outline"
-                  onClick={() => navigate('/signin')}
-                  className="border-2 border-slate-300 hover:border-[#6366F1] hover:bg-[#EEF2FF] text-slate-700 rounded-lg px-8 h-12 text-base font-semibold"
-                >
-                  Log In
-                </Button>
-              </div>
-            </div>
-            <div className="relative">
-              <img
-                src="https://images.unsplash.com/photo-1645280403333-3775178fc8c6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODF8MHwxfHNlYXJjaHw0fHxhYnN0cmFjdCUyMGNvbG9yZnVsJTIwM2QlMjBnZW9tZXRyaWMlMjBzaGFwZXMlMjBkYXRhJTIwZmxvd3xlbnwwfHx8fDE3NzEwNzM3NDh8MA&ixlib=rb-4.1.0&q=85"
-                alt="Data Flow"
-                className="rounded-2xl shadow-2xl"
-              />
-            </div>
+      {/* ================= HERO ================= */}
+      <section className="relative py-32 overflow-hidden">
+
+        {/* Background glow */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:40px_40px]" />
+        <div className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-indigo-200 rounded-full blur-3xl opacity-30 animate-blob" />
+        <div className="absolute -bottom-20 -right-20 w-[500px] h-[500px] bg-purple-200 rounded-full blur-3xl opacity-30 animate-blob animation-delay-2000" />
+
+        <div className="relative max-w-4xl mx-auto px-6 text-center reveal">
+
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/70 backdrop-blur-xl border border-slate-200 rounded-full text-sm mb-10 shadow-sm">
+            <Shield className="w-4 h-4 text-indigo-600" />
+            Decision Intelligence Infrastructure
+          </div>
+
+          <h1 className="text-5xl md:text-6xl font-extrabold leading-tight mb-8">
+            From raw data to
+            <span className="block bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
+              confident action
+            </span>
+          </h1>
+
+          <p className="text-xl text-slate-600 mb-12 leading-relaxed">
+            AnalytiCore automatically structures, analyzes, and interprets
+            your data — delivering prioritized insights with recommended next
+            steps in clear business language.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              onClick={() => navigate("/signup")}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 h-14 shadow-2xl hover:-translate-y-1 transition-all group"
+            >
+              Start Your First Analysis
+              <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-white">
+      {/* ================= FEATURES ================= */}
+      <section id="features" className="py-28 bg-slate-50">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-4" style={{ letterSpacing: '-0.02em' }}>
-              Everything you need, nothing you don't
+
+          <div className="text-center max-w-3xl mx-auto mb-20 reveal">
+            <h2 className="text-4xl font-bold mb-6">
+              Intelligence embedded across the pipeline
             </h2>
-            <p className="text-lg text-[#64748B] max-w-3xl mx-auto">
-              A complete pipeline from ingestion to insight — guided by AI at every step
+            <p className="text-lg text-slate-600">
+              Automated. Structured. Outcome-driven.
             </p>
           </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#EEF2FF] rounded-lg flex items-center justify-center mb-6">
-                <Upload className="w-7 h-7 text-[#6366F1]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">Drag & Drop Ingestion</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                Upload CSV, Excel, or connect live sources. Instant preview and profiling.
-              </p>
-            </div>
 
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#F0FDFA] rounded-lg flex items-center justify-center mb-6">
-                <Wand2 className="w-7 h-7 text-[#14B8A6]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">AI-Powered Cleaning</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                One-click auto-clean with smart suggestions. No more messy data.
-              </p>
-            </div>
+          <div className="grid md:grid-cols-3 gap-10">
 
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#FEF3F2] rounded-lg flex items-center justify-center mb-6">
-                <BarChart3 className="w-7 h-7 text-[#F59E0B]" />
+            {[
+              { icon: <Upload />, title: "Data Structuring", desc: "Automatic schema detection and column classification." },
+              { icon: <Wand2 />, title: "Anomaly Detection", desc: "Surface inconsistencies, risk, and outliers instantly." },
+              { icon: <Brain />, title: "Driver Analysis", desc: "Reveal what influences your key metrics." },
+              { icon: <BarChart3 />, title: "Insight Visualization", desc: "Contextual visuals designed for clarity." },
+              { icon: <Share2 />, title: "Business Summaries", desc: "Insights written in decision-ready language." },
+              { icon: <Cloud />, title: "Unified Workspace", desc: "Files, databases, APIs — one environment." }
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="reveal group relative p-[1px] rounded-2xl bg-gradient-to-r from-indigo-200 via-purple-200 to-indigo-200 transition-all duration-500 hover:shadow-[0_0_40px_rgba(99,102,241,0.25)]"
+              >
+                <div className="bg-white p-8 rounded-2xl h-full group-hover:-translate-y-2 transition-all duration-300 shadow-md group-hover:shadow-2xl">
+                  <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition">
+                    {item.icon}
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+                </div>
               </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">Smart Visualizations</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                AI recommends the best charts. Generate insights with a single click.
-              </p>
-            </div>
+            ))}
 
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#FEF3F2] rounded-lg flex items-center justify-center mb-6">
-                <Zap className="w-7 h-7 text-[#8B5CF6]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">Guided Analysis</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                Step-by-step wizard walks you through objectives to actionable results.
-              </p>
-            </div>
-
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#EEF2FF] rounded-lg flex items-center justify-center mb-6">
-                <Database className="w-7 h-7 text-[#6366F1]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">Multiple Sources</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                CSV, Excel, Google Sheets, REST APIs, PostgreSQL, MySQL — all in one place.
-              </p>
-            </div>
-
-            <div className="feature-card bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-              <div className="w-14 h-14 bg-[#F0FDFA] rounded-lg flex items-center justify-center mb-6">
-                <Share2 className="w-7 h-7 text-[#14B8A6]" />
-              </div>
-              <h3 className="text-xl font-bold text-[#0F172A] mb-3">Share & Export</h3>
-              <p className="text-[#64748B] leading-relaxed">
-                Publish interactive dashboards or export as PDF, images, and CSV.
-              </p>
-            </div>
           </div>
         </div>
       </section>
 
-      <section className="py-20 bg-[#F8FAFC]">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold text-[#0F172A] mb-6" style={{ letterSpacing: '-0.02em' }}>
-            Start analyzing in minutes, not hours
+      {/* ================= CTA ================= */}
+      <section className="py-28 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-center reveal">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-4xl font-bold mb-6">
+            Your data already holds the answers.
           </h2>
-          <p className="text-xl text-[#64748B] mb-8">
-            Join data analysts who get insights faster with AI-powered automation
+          <p className="text-lg mb-10 text-indigo-100">
+            Let AnalytiCore reveal them clearly — and help you act confidently.
           </p>
+
           <Button
             size="lg"
-            onClick={() => navigate('/signup')}
-            data-testid="footer-cta-btn"
-            className="bg-[#6366F1] hover:bg-[#4F46E5] text-white shadow-lg shadow-indigo-500/30 rounded-lg px-10 h-14 text-lg font-semibold"
+            onClick={() => navigate("/signup")}
+            className="bg-white text-indigo-600 hover:bg-indigo-50 shadow-2xl hover:-translate-y-1 transition-all duration-300"
           >
-            Get Started Free
+            Get Started Free <Rocket className="ml-2 w-5 h-5" />
           </Button>
-          <p className="text-sm text-[#94A3B8] mt-4">No credit card required • Free plan available</p>
         </div>
       </section>
 
-      <footer className="bg-white border-t border-slate-200 py-8">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Database className="w-6 h-6 text-[#6366F1]" />
-              <span className="text-lg font-bold text-[#0F172A]">AnalytiCore</span>
-            </div>
-            <div className="flex gap-6 text-sm">
-              <button onClick={() => navigate('/privacy')} className="text-[#64748B] hover:text-[#6366F1]">Privacy Policy</button>
-              <button onClick={() => navigate('/terms')} className="text-[#64748B] hover:text-[#6366F1]">Terms of Service</button>
-            </div>
-            <p className="text-[#94A3B8] text-sm">&copy; 2026 AnalytiCore. From raw data to actionable insights.</p>
+      {/* ================= FOOTER ================= */}
+      <footer className="bg-slate-900 text-slate-400 py-14">
+        <div className="max-w-6xl mx-auto px-6 text-center">
+
+          <div className="h-px w-full bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-40 mb-10"></div>
+
+          <Database className="mx-auto text-indigo-500 mb-4" />
+          <p className="text-white font-semibold mb-6 text-lg">
+            AnalytiCore
+          </p>
+
+          <div className="flex justify-center gap-8 text-sm mb-8">
+            <button
+              onClick={() => navigate("/privacy")}
+              className="hover:text-white transition"
+            >
+              Privacy Policy
+            </button>
+            <button
+              onClick={() => navigate("/terms")}
+              className="hover:text-white transition"
+            >
+              Terms of Service
+            </button>
           </div>
+
+          <p className="text-xs text-slate-500">
+            © {new Date().getFullYear()} AnalytiCore. All rights reserved.
+          </p>
+
         </div>
       </footer>
+
+      {/* ================= ANIMATIONS ================= */}
+      <style jsx>{`
+        @keyframes blob {
+          0% { transform: translate(0,0) scale(1); }
+          33% { transform: translate(30px,-40px) scale(1.1); }
+          66% { transform: translate(-20px,20px) scale(0.9); }
+          100% { transform: translate(0,0) scale(1); }
+        }
+        .animate-blob {
+          animation: blob 8s infinite ease-in-out;
+        }
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+        .reveal {
+          opacity: 0;
+          transform: translateY(40px);
+          transition: all 0.8s ease;
+        }
+        .reveal.active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradientShift 6s ease infinite;
+        }
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+      `}</style>
+
     </div>
   );
 }
