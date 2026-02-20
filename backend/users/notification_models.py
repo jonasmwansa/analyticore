@@ -126,7 +126,7 @@ class PushSubscription(models.Model):
         related_name='push_subscriptions'
     )
     
-    endpoint = models.TextField(unique=True)
+    endpoint = models.CharField(max_length=255, unique=True)
     p256dh_key = models.CharField(max_length=255)
     auth_key = models.CharField(max_length=255)
     

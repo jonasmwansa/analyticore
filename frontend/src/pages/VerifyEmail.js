@@ -4,32 +4,39 @@ import { toast } from 'sonner';
 import { CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { authAPI } from '../api';
+import { useRef } from 'react';
 
 function VerifyEmail() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [status, setStatus] = useState('verifying');
-  const token = searchParams.get('token');
+  const [searchParams] = useSearchParams(); // 👈 GET THE URL PARAMETERS
+  const [status, setStatus] = useState('verifying'); // 👈 ADD THIS STATE (missing!)
+  const hasVerified = useRef(false);
+  
+  // Extract token from URL 👇
+  const token = searchParams.get('token'); // 👈 THIS WAS MISSING!
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (!token) {
-        setStatus('error');
-        return;
-      }
+    if (!token || hasVerified.current) return;
 
+    hasVerified.current = true;
+
+    const verifyEmail = async () => {
       try {
         await authAPI.verifyEmail(token);
         setStatus('success');
         toast.success('Email verified successfully!');
       } catch (error) {
         setStatus('error');
-        toast.error(error.response?.data?.detail || error.response?.data?.token?.[0] || 'Verification failed');
+        toast.error(
+          error.response?.data?.detail ||
+          error.response?.data?.token?.[0] ||
+          'Verification failed'
+        );
       }
     };
 
     verifyEmail();
-  }, [token]);
+  }, [token]); // 👈 Now token is defined!
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-6">

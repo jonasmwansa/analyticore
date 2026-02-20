@@ -171,9 +171,10 @@ LOGGING = {
     },
 }
 
-PIPELINE_STORAGE_PATH = BASE_DIR / 'pipeline_data'
-PIPELINE_STORAGE_PATH.mkdir(exist_ok=True)
+PROJECT_ROOT = BASE_DIR.parent.parent.parent  
+PIPELINE_STORAGE_PATH = PROJECT_ROOT / 'analyticore_storage'
 
+PIPELINE_STORAGE_PATH.mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'original').mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'processed').mkdir(exist_ok=True)
 (PIPELINE_STORAGE_PATH / 'exports').mkdir(exist_ok=True)

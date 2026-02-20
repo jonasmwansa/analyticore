@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { 
   Upload, FileSpreadsheet, Database, Table, 
@@ -26,6 +26,7 @@ const GoogleSheetsIcon = ({ className }) => (
 function DataSourcePicker({ projectId, onImportComplete }) {
   const [sourceType, setSourceType] = useState('file');
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
   
   // Google Sheets state
   const [sheetsStatus, setSheetsStatus] = useState({ connected: false, configured: false });
@@ -244,10 +245,16 @@ function DataSourcePicker({ projectId, onImportComplete }) {
             <div className="w-20 h-20 bg-[#EEF2FF] rounded-full flex items-center justify-center mx-auto mb-6">
               <Upload className="w-10 h-10 text-[#6366F1]" />
             </div>
-            <h2 className="text-2xl font-bold text-[#0F172A] mb-3">Upload Your Data</h2>
-            <p className="text-[#64748B] mb-6">Supported formats: CSV, Excel (.xlsx, .xls), JSON</p>
-            
+            <h2 className="text-2xl font-bold text-[#0F172A] mb-3">
+              Upload Your Data
+            </h2>
+            <p className="text-[#64748B] mb-6">
+              Supported formats: CSV, Excel (.xlsx, .xls), JSON
+            </p>
+
+            {/* Hidden File Input */}
             <input
+              ref={fileInputRef}
               type="file"
               accept=".csv,.xlsx,.xls,.json"
               onChange={(e) => {
@@ -256,20 +263,19 @@ function DataSourcePicker({ projectId, onImportComplete }) {
                 }
               }}
               disabled={loading}
-              id="file-upload"
-              data-testid="file-upload-input"
               className="hidden"
+              data-testid="file-upload-input"
             />
-            <label htmlFor="file-upload">
-              <Button
-                as="span"
-                disabled={loading}
-                data-testid="upload-file-btn"
-                className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg h-12 px-8 font-semibold shadow-md shadow-indigo-500/20 cursor-pointer"
-              >
-                {loading ? 'Uploading...' : 'Choose File'}
-              </Button>
-            </label>
+
+            {/* Button triggers file dialog */}
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={loading}
+              data-testid="upload-file-btn"
+              className="bg-[#6366F1] hover:bg-[#4F46E5] text-white rounded-lg h-12 px-8 font-semibold shadow-md shadow-indigo-500/20"
+            >
+              {loading ? 'Uploading...' : 'Choose File'}
+            </Button>
           </div>
         </Card>
       )}
