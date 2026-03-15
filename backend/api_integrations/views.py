@@ -316,7 +316,7 @@ def google_sheets_callback(request):
     state = request.GET.get('state')  # Contains user_id
     error = request.GET.get('error')
     
-    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://magic-analysis-dev.preview.emergentagent.com')
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://private-analyst.preview.emergentagent.com')
     
     if error:
         return redirect(f"{frontend_url}/dashboard?sheets_error={error}")

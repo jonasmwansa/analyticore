@@ -12,7 +12,7 @@ import os
 from datetime import datetime
 
 class AnalyticoreAPITester:
-    def __init__(self, base_url="https://magic-analysis-dev.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://private-analyst.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()
         self.admin_session = requests.Session()
