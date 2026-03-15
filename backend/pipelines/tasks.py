@@ -378,3 +378,75 @@ def run_pipeline_manually(schedule_id, user_id=None):
         
     except ScheduledPipeline.DoesNotExist:
         return {'status': 'error', 'message': 'Schedule not found'}
+
+
+@shared_task(bind=True, max_retries=3)
+def clean_data_upload(self, upload_id):
+    """Apply cleaning rules to a DataUpload record and save cleaned file."""
+    from data_ingestion.models import DataUpload
+    from django.core.files import File as DjangoFile
+
+    try:
+        upload = DataUpload.objects.get(id=upload_id)
+    except DataUpload.DoesNotExist:
+        logger.error(f"DataUpload not found: {upload_id}")
+        return {'status': 'error', 'message': 'upload not found'}
+
+    try:
+        upload.status = 'processing'
+        upload.processed_at = timezone.now()
+        upload.save()
+
+        # Determine source file path
+        if upload.original_file and hasattr(upload.original_file, 'path') and os.path.exists(upload.original_file.path):
+            file_path = upload.original_file.path
+        else:
+            raise ValueError('Original file not available')
+
+        # Load dataframe
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_path)
+        elif file_path.endswith('.json'):
+            df = pd.read_json(file_path)
+        else:
+            raise ValueError('Unsupported file format for cleaning')
+
+        logs = []
+        cleaning_rules = upload.cleaning_rules or []
+        for rule in cleaning_rules:
+            df = apply_cleaning_rule(df, rule, logs)
+
+        # Save cleaned dataframe
+        output_dir = os.path.join(settings.PIPELINE_STORAGE_PATH, 'cleaned')
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, f"{upload.id}_cleaned_{timezone.now().strftime('%Y%m%d_%H%M%S')}.csv")
+        df.to_csv(output_path, index=False)
+
+        # Attach to FileField
+        with open(output_path, 'rb') as f:
+            django_file = DjangoFile(f)
+            upload.cleaned_file.save(os.path.basename(output_path), django_file, save=False)
+
+        # Update stats
+        cleaning_stats = {
+            'rules_applied': len(cleaning_rules),
+            'rows_before': int(upload.row_count) if upload.row_count is not None else None,
+            'rows_after': int(len(df))
+        }
+
+        upload.cleaning_stats = cleaning_stats
+        upload.cleaned_at = timezone.now()
+        upload.status = 'cleaned'
+        upload.is_cleaned_version = True
+        upload.processed_at = timezone.now()
+        upload.save()
+
+        return {'status': 'completed', 'cleaned_file': upload.cleaned_file.name}
+
+    except Exception as e:
+        logger.error(f"Error cleaning upload {upload_id}: {str(e)}")
+        upload.status = 'failed'
+        upload.save()
+        return {'status': 'failed', 'message': str(e)}

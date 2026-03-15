@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
 .App {
   min-height: 100vh;
 }
@@ -65,5 +67,20 @@
   }
   50% {
     opacity: 0.5;
+  }
+}
+
+.pipeline-pulse {
+  animation: pipelinePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes pipelinePulse {
+  0%, 100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.4;
+    transform: translateY(-4px);
   }
 }

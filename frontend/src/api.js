@@ -60,6 +60,7 @@ export const projectsAPI = {
 };
 
 export const analysisAPI = {
+  runAutomation: (id, data = {}) => api.post(`/analysis/${id}/automate`, data),
   getStatistics: (id) => api.get(`/analysis/${id}/statistics`),
   getCorrelation: (id, method = 'pearson') => api.get(`/analysis/${id}/correlation?method=${method}`),
   getDistribution: (id, column = null, bins = 20) => {
@@ -86,6 +87,7 @@ export const analysisAPI = {
   runMagicAnalysis: (id) => api.get(`/analysis/${id}/magic-analyze`),
   applyMagicCleaning: (id, actions) => api.post(`/analysis/${id}/magic-apply-cleaning`, { actions }),
   exportAnalysisReport: (id, format = 'excel') => api.get(`/analysis/${id}/magic-export?export_format=${format}`),
+  rollback: (id) => api.post(`/analysis/${id}/rollback`),
 };
 
 export const enhancedExportsAPI = {

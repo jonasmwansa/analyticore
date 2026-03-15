@@ -7,6 +7,7 @@ app_name = 'analysis'
 
 urlpatterns = [
     # Analysis endpoints
+    path('<uuid:project_id>/automate', views.automate_project, name='automate'),
     path('<uuid:project_id>/analyze', views.analyze_data, name='analyze'),
     path('<uuid:project_id>/transform', views.apply_transformations, name='transform'),
     path('<uuid:project_id>/statistics', views.get_statistics, name='statistics'),
@@ -23,6 +24,7 @@ urlpatterns = [
     path('<uuid:project_id>/magic-analyze', magic_views.run_magic_analysis, name='magic-analyze'),
     path('<uuid:project_id>/magic-apply-cleaning', magic_views.apply_magic_cleaning, name='magic-apply-cleaning'),
     path('<uuid:project_id>/magic-export', magic_views.export_analysis_report, name='magic-export'),
+    path('<uuid:project_id>/rollback', views.rollback_transformations, name='rollback'),
     
     # ML endpoints
     path('<uuid:project_id>/ml/info', ml_views.get_ml_info, name='ml-info'),

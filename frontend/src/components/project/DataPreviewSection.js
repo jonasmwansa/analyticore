@@ -8,8 +8,11 @@ export function DataPreviewSection({
   dataPreview, 
   analyzing, 
   onAnalyzeData, 
-  onViewAnalysis 
+  onViewAnalysis, 
+  onOneClickClean,
+  oneClickCleaning = false
 }) {
+  const automation = project?.statistics?.automation;
   return (
     <div className="space-y-6">
       {project?.statistics && (
@@ -63,12 +66,12 @@ export function DataPreviewSection({
                 {analyzing ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Analyzing...
+                    Running...
                   </>
                 ) : (
                   <>
                     <Wand2 className="w-5 h-5 mr-2" />
-                    AI Insights
+                    {automation ? 'Re-run Pipeline' : 'Run Pipeline'}
                   </>
                 )}
               </Button>
@@ -79,6 +82,25 @@ export function DataPreviewSection({
                 className="h-12 px-4"
               >
                 <BarChart3 className="w-5 h-5" />
+              </Button>
+              <Button
+                onClick={onOneClickClean}
+                data-testid="one-click-clean-btn"
+                variant="outline"
+                className="h-12 px-4"
+                disabled={oneClickCleaning}
+              >
+                {oneClickCleaning ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-slate-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Cleaning...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-5 h-5 mr-2" />
+                    Clean
+                  </>
+                )}
               </Button>
             </div>
           </Card>

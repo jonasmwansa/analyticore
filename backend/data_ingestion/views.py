@@ -6,32 +6,19 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from django.conf import settings
 from django.utils import timezone
 import pandas as pd
-import numpy as np
 import os
 from projects.models import Project
 from .models import DataSource, DataUpload
-from pipelines.context import PipelineContext
-from pipelines.base import Pipeline
-from pipelines.steps import ColumnUnderstandingStep
+from pipelines.tasks import clean_data_upload
+from analysis.services import AutomatedAnalysisService
 
 
-def convert_to_serializable(obj):
-    """Convert numpy types to Python native types for JSON serialization"""
-    if isinstance(obj, dict):
-        return {k: convert_to_serializable(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_to_serializable(v) for v in obj]
-    elif isinstance(obj, (np.integer, np.int64, np.int32)):
-        return int(obj)
-    elif isinstance(obj, (np.floating, np.float64, np.float32)):
-        return float(obj) if not np.isnan(obj) else None
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, np.bool_):
-        return bool(obj)
-    elif pd.isna(obj):
-        return None
-    return obj
+def _parse_boolean(value, default=True):
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() not in {'0', 'false', 'no', 'off'}
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -63,43 +50,25 @@ def upload_file(request, project_id):
             df = pd.read_json(file_path)
         else:
             return Response({'detail': 'Unsupported file format'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        context = PipelineContext(
-            project_id=str(project_id),
-            original_df=df.copy(),
-            current_df=df.copy()
-        )
-        
-        pipeline = Pipeline("Column Understanding")
-        pipeline.add_step(ColumnUnderstandingStep())
-        context = pipeline.execute(context)
-        
-        statistics = {
-            'total_rows': int(len(df)),
-            'total_columns': int(len(df.columns)),
-            'columns': df.columns.tolist(),
-            'data_types': {col: str(dtype) for col, dtype in df.dtypes.items()},
-            'missing_values': {col: int(v) for col, v in df.isnull().sum().items()},
-            'sample_data': convert_to_serializable(df.head(5).to_dict('records')),
-            'column_metadata': {name: convert_to_serializable({
-                'inferred_type': meta.inferred_type,
-                'confidence': meta.confidence,
-                'missing_percentage': meta.missing_percentage,
-                'unique_count': meta.unique_count,
-                'is_identifier': meta.is_identifier,
-                'statistics': meta.statistics
-            }) for name, meta in context.metadata.items()}
-        }
-        
         project.original_filename = filename
         project.file_path = file_path
-        project.row_count = len(df)
-        project.column_count = len(df.columns)
         project.status = 'uploaded'
-        project.statistics = statistics
         project.save()
-        
-        return Response({'message': 'File uploaded successfully', 'statistics': statistics})
+
+        result = AutomatedAnalysisService.run(
+            project,
+            df,
+            actor=request.user,
+            auto_apply_cleaning=_parse_boolean(request.data.get('auto_apply_cleaning'), default=True),
+            source='upload',
+        )
+
+        return Response({
+            'message': 'File uploaded and automated analysis completed successfully',
+            'statistics': result['statistics'],
+            'recommendations': result['recommendations'],
+            'automation': result['automation'],
+        })
     
     except Exception as e:
         return Response({'detail': f'Failed to process file: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -125,7 +94,6 @@ def get_data_preview(request, project_id):
         elif file_path.endswith('.json'):
             df = pd.read_json(file_path)
         
-        # Convert DataFrame to serializable format (handle NaN, inf, etc.)
         preview_df = df.head(100)
         data_records = []
         for _, row in preview_df.iterrows():
@@ -134,12 +102,8 @@ def get_data_preview(request, project_id):
                 val = row[col]
                 if pd.isna(val):
                     record[col] = None
-                elif isinstance(val, (np.floating, float)) and (np.isinf(val) or np.isnan(val)):
-                    record[col] = None
-                elif isinstance(val, (np.integer, np.int64, np.int32)):
-                    record[col] = int(val)
-                elif isinstance(val, (np.floating, np.float64, np.float32)):
-                    record[col] = float(val)
+                elif hasattr(val, 'item'):
+                    record[col] = val.item()
                 else:
                     record[col] = val
             data_records.append(record)
@@ -151,3 +115,30 @@ def get_data_preview(request, project_id):
         })
     except Exception as e:
         return Response({'detail': f'Failed to load data: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def trigger_clean_upload(request, upload_id):
+    """Trigger cleaning for a specific DataUpload (runs async Celery task)."""
+    try:
+        upload = DataUpload.objects.select_related('data_source', 'user').get(id=upload_id)
+    except DataUpload.DoesNotExist:
+        return Response({'detail': 'Upload not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    # Only owner may trigger cleaning
+    if upload.user != request.user:
+        return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+    # Prevent duplicate concurrent processing
+    if upload.status == 'processing':
+        return Response({'detail': 'Upload is already being processed'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Mark as processing and schedule task
+    upload.status = 'processing'
+    upload.processed_at = timezone.now()
+    upload.save()
+
+    task = clean_data_upload.delay(str(upload.id))
+
+    return Response({'message': 'Cleaning scheduled', 'task_id': task.id})

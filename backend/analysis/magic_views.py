@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from projects.models import Project
 from .services import DataLoaderService, TransformationService
 from .magic_analysis_service import run_magic_analysis as run_magic_analysis_service
+from django.utils import timezone
 
 
 @api_view(['GET'])
@@ -95,12 +96,37 @@ def apply_magic_cleaning(request, project_id):
                 df, change = _handle_outliers(df, column, strategy)
                 changes_log.append(change)
         
-        # Save the cleaned data
-        processed_path = TransformationService.save_processed_data(df, project.project_id)
-        
+        # Save the cleaned data (returns processed_path, backup_path)
+        processed_result = TransformationService.save_processed_data(df, project.project_id)
+        if isinstance(processed_result, (list, tuple)):
+            processed_path, backup_path = processed_result
+        else:
+            processed_path = processed_result
+            backup_path = None
+
         project.processed_file_path = processed_path
         project.status = 'transformed'
         project.save()
+
+        # Audit applied transformations
+        try:
+            entry = {
+                'timestamp': timezone.now().isoformat(),
+                'user': getattr(request.user, 'email', str(request.user.id)),
+                'actions': cleaning_actions,
+                'original_shape': list(original_shape),
+                'new_shape': list(df.shape),
+                'changes': changes_log,
+                'backup_path': backup_path,
+                'rows_affected': original_shape[0] - df.shape[0] if original_shape[0] != df.shape[0] else 0
+            }
+            existing = project.applied_transformations or []
+            existing.append(entry)
+            project.applied_transformations = existing
+            project.save()
+        except Exception:
+            # Don't fail the request if audit logging has problems
+            pass
         
         return Response({
             'message': 'Cleaning operations applied successfully',

@@ -1,148 +1,161 @@
 # AnalytiCore Architecture
 
-## Important Note on Framework Choice
+## Tech Stack
 
-**Original Requirement**: Django + React
-**Implemented**: FastAPI + React + MongoDB
+| Component | Technology |
+|-----------|------------|
+| Backend | Django 5.2 + Django REST Framework |
+| Frontend | React 18 + Tailwind CSS + shadcn/ui (Radix) |
+| Database | SQLite (dev) / MySQL (prod) |
+| Task Queue | Celery + Redis + django-celery-beat |
+| ML/Stats | scikit-learn, scipy, pandas, numpy |
+| Charts | Recharts (frontend), matplotlib/plotly (backend exports) |
+| Auth | Token Auth + Google OAuth + Email 2FA |
+| API Docs | drf-yasg (Swagger/ReDoc) |
+| Payments | Stripe |
 
-### Why FastAPI Instead of Django?
+## Backend Architecture
 
-The development environment is pre-configured with FastAPI, React, and MongoDB. Since FastAPI provides:
-- Async/await support for better performance with data processing
-- Built-in OpenAPI/Swagger documentation
-- Fast development with Pydantic models
-- Excellent integration with the existing MongoDB setup
-
-The project was implemented using FastAPI to leverage the existing infrastructure.
-
-## Current Architecture (Monolithic FastAPI)
-
-Currently, all backend code is in a single `server.py` file. This works for MVP but should be refactored into modular structure.
-
-## Recommended Backend Structure (Django-Style Separation)
-
-To achieve separation of concerns similar to Django apps, the backend should be restructured as follows:
+The backend follows Django's **app-per-domain** pattern with 7 apps:
 
 ```
 backend/
-├── main.py                 # FastAPI app initialization
-├── config.py              # Configuration and environment variables
-├── database.py            # MongoDB connection setup
+├── analyticore_api/          # Django project settings & root URLs
+│   ├── settings.py           # Configuration (env-driven)
+│   ├── urls.py               # Root URL routing
+│   ├── celery.py             # Celery app configuration
+│   └── exception_handler.py  # Custom DRF exception handler
 │
-├── apps/
-│   ├── __init__.py
-│   │
-│   ├── auth/              # Authentication module
-│   │   ├── __init__.py
-│   │   ├── models.py      # User, Session models
-│   │   ├── routes.py      # Auth endpoints
-│   │   ├── services.py    # Business logic (email verification, JWT)
-│   │   └── dependencies.py # Auth dependencies (get_current_user)
-│   │
-│   ├── projects/          # Project management module
-│   │   ├── __init__.py
-│   │   ├── models.py      # Project model
-│   │   ├── routes.py      # Project CRUD endpoints
-│   │   └── services.py    # Project business logic
-│   │
-│   ├── analysis/          # Data analysis module
-│   │   ├── __init__.py
-│   │   ├── models.py      # DataStatistics, AIRecommendation models
-│   │   ├── routes.py      # Analysis endpoints
-│   │   ├── services.py    # AI analysis logic (GPT-5.2 integration)
-│   │   └── transformations.py # Data transformation functions
-│   │
-│   └── data_ingestion/    # Data ingestion module
-│       ├── __init__.py
-│       ├── models.py      # Upload metadata models
-│       ├── routes.py      # Upload endpoints
-│       ├── parsers.py     # CSV/Excel/JSON parsers
-│       └── connectors/    # Database and API connectors
-│           ├── database.py
-│           └── api.py
+├── users/                    # Authentication & user management
+│   ├── models.py             # User, EmailVerificationToken, GoogleAuthSession
+│   ├── views.py              # Register, login, logout, email verify, Google OAuth
+│   ├── serializers.py        # User serializers
+│   ├── security_models.py    # 2FA OTP, password history, audit logs
+│   ├── security_views.py     # 2FA enable/disable, password change/reset
+│   ├── notification_*        # Push/email notification system
+│   ├── billing_*             # Stripe subscription management
+│   ├── admin_*               # SaaS admin dashboard & analytics
+│   └── health_monitoring.py  # System health checks
 │
-├── utils/
-│   ├── email.py           # Email sending utilities
-│   ├── security.py        # JWT, password hashing
-│   └── validators.py      # Input validation
+├── projects/                 # Project CRUD & comparison
+│   ├── models.py             # Project model (file paths, stats, transformations)
+│   ├── views.py              # Create, list, get, delete projects
+│   └── compare_views.py      # Side-by-side project comparison
 │
-└── requirements.txt
+├── analysis/                 # Statistical analysis & ML
+│   ├── views.py              # Analysis endpoints (stats, correlation, distribution)
+│   ├── statistics.py         # StatisticalAnalyzer (descriptive stats, correlation, charts)
+│   ├── insights.py           # Rule-based cleaning recommendations & insights
+│   ├── ml_service.py         # Regression, classification, clustering, PCA
+│   ├── ml_views.py           # ML training, prediction, auto-ML endpoints
+│   ├── magic_analysis_service.py  # One-click comprehensive analysis
+│   ├── magic_views.py        # Magic analysis endpoints
+│   └── services/             # DataLoader, Transformation, ColumnAction services
+│
+├── data_ingestion/           # File upload & data source connectors
+│   ├── models.py             # Upload metadata
+│   └── views.py              # CSV/Excel/JSON upload, data preview
+│
+├── exports/                  # Data & visualization exports
+│   ├── views.py              # Basic data export (CSV, Excel)
+│   └── enhanced_views.py     # Statistics, correlation, chart image exports
+│
+├── pipelines/                # Scheduled analysis pipelines
+│   ├── models.py             # PipelineSchedule, PipelineRun, PipelineStep
+│   ├── views.py              # Schedule CRUD, run history
+│   ├── tasks.py              # Celery task execution
+│   ├── base.py               # Base pipeline step class
+│   ├── context.py            # Pipeline execution context
+│   └── steps/                # Individual pipeline step implementations
+│
+├── api_integrations/         # External data source connectors
+│   ├── views.py              # Google Sheets, MySQL, PostgreSQL connectors
+│   └── models.py             # DataSource, GoogleSheetsCredentials
+│
+└── tests/                    # Integration test suite
+    ├── test_analyticore.py
+    ├── test_analysis_api.py
+    ├── test_magic_analysis.py
+    └── ... (10 test files)
 ```
 
-## Migration Plan (Current → Modular)
+## Frontend Architecture
 
-### Phase 1: Extract Authentication
-- Move all auth-related code from `server.py` to `apps/auth/`
-- Models: User, UserRegister, UserLogin, SessionData
-- Routes: /auth/register, /auth/login, /auth/verify-email, /auth/me, /auth/logout, /auth/session
-- Services: send_verification_email, JWT token generation
-
-### Phase 2: Extract Projects
-- Move project management to `apps/projects/`
-- Models: Project, ProjectCreate
-- Routes: GET/POST /projects, /projects/{id}
-
-### Phase 3: Extract Analysis
-- Move AI analysis to `apps/analysis/`
-- Models: AIRecommendation, DataStatistics, TransformationRule
-- Routes: /projects/{id}/analyze, /projects/{id}/transform
-- Services: GPT-5.2 integration, transformation logic
-
-### Phase 4: Extract Data Ingestion
-- Move upload and data preview to `apps/data_ingestion/`
-- Routes: /projects/{id}/upload, /projects/{id}/data
-- Parsers: CSV, Excel, JSON handling
-- Future: Database connectors, API integrations
-
-## Benefits of Modular Structure
-
-1. **Maintainability**: Each module is self-contained and easier to understand
-2. **Scalability**: Can add new modules (e.g., data visualization, reporting) without touching core code
-3. **Testing**: Each module can be tested independently
-4. **Team Collaboration**: Different developers can work on different modules
-5. **Reusability**: Modules can be reused across different projects
-
-## Database Collections (MongoDB)
+React 18 SPA bootstrapped with Create React App + CRACO:
 
 ```
-analyticore_db/
-├── users                  # User accounts
-├── user_sessions         # Active sessions
-├── verification_tokens   # Email verification tokens
-├── projects              # Data transformation projects
-└── (future collections)
-    ├── transformations   # Transformation history
-    ├── api_connections   # Saved API connections
-    └── db_connections    # Saved database connections
+frontend/src/
+├── App.js                    # Router with protected routes
+├── api.js                    # Centralized API client (axios)
+│
+├── pages/                    # 15 page components
+│   ├── LandingPage.js        # Public marketing page
+│   ├── SignIn.js / SignUp.js  # Authentication
+│   ├── Dashboard.js          # Project list & overview
+│   ├── ProjectView.js        # Data upload, analysis, ML
+│   ├── AdminDashboard.js     # SaaS admin metrics
+│   ├── ScheduledPipelines.js # Pipeline management
+│   ├── CompareProjects.js    # Project comparison
+│   ├── SecuritySettings.js   # 2FA, password management
+│   └── NotificationSettings.js
+│
+├── components/
+│   ├── ui/                   # shadcn/ui primitives (Radix-based)
+│   ├── analysis/             # Analysis visualization components
+│   ├── data/                 # Data table components
+│   ├── project/              # Project-specific components
+│   └── admin/                # Admin dashboard components
+│
+└── hooks/                    # Custom React hooks
 ```
 
-## Current Implementation Status
+## API URL Structure
 
-✅ **Implemented (Monolithic)**:
-- Authentication (email/password + Google OAuth)
-- Email verification
-- Project management
-- File upload (CSV, Excel, JSON)
-- AI-powered analysis (GPT-5.2)
-- Data transformations
-- Data preview
+| Prefix | App | Purpose |
+|--------|-----|---------|
+| `/api/auth/` | users | Register, login, logout, verify email |
+| `/api/projects/` | projects + data_ingestion | Project CRUD, file upload, data preview |
+| `/api/analysis/` | analysis | Statistics, ML, magic analysis |
+| `/api/exports/` | exports | Data & chart exports |
+| `/api/pipelines/` | pipelines | Scheduled pipeline management |
+| `/api/integrations/` | api_integrations | Google Sheets, database connectors |
+| `/api/saas-admin/` | users (admin) | Admin dashboard & analytics |
+| `/api/billing/` | users (billing) | Stripe subscription management |
+| `/api/notifications/` | users (notifications) | Push/email notification management |
 
-⏳ **To Be Implemented**:
-- Modular app structure
-- Database connectors (PostgreSQL, MySQL)
-- API integrations
-- Data export functionality
-- Transformation history
-- Data visualization
+## Database (Django ORM)
 
-## Next Steps
+Primary models and their relationships:
 
-1. **Refactor to Modular Structure**: Follow the migration plan above
-2. **Add Database Connectors**: Implement PostgreSQL, MySQL connection UI
-3. **Add API Integration**: Allow users to connect to REST APIs
-4. **Add Export**: Download cleaned data in multiple formats
-5. **Add Visualization**: Charts and graphs for data quality metrics
+```mermaid
+erDiagram
+    User ||--o{ Project : creates
+    User ||--o{ EmailVerificationToken : has
+    User ||--o{ GoogleAuthSession : has
+    User ||--|| UserSecuritySettings : has
+    User ||--o{ TwoFactorOTP : receives
+    User ||--o{ PasswordHistory : tracks
+    User ||--o{ SecurityAuditLog : generates
+    Project ||--o{ AnalysisRun : has
+    Project ||--o{ TransformationLog : tracks
+    Project ||--o{ PipelineSchedule : schedules
+    PipelineSchedule ||--o{ PipelineRun : executes
+```
 
----
+## Security Features
 
-**Note**: If a pure Django implementation is strongly preferred, the entire backend would need to be rebuilt using Django REST Framework, Django ORM with PostgreSQL, and Django's app structure. This would require significant effort but would provide Django's admin panel, ORM features, and ecosystem.
+- **Token Authentication** (DRF TokenAuthentication)
+- **Email OTP 2FA** with rate limiting (3 attempts, 10-min expiry)
+- **Account lockout** after 5 failed login attempts (30-min cooldown)
+- **Password history** (prevents reuse of last 5 passwords)
+- **Password expiry** (configurable, default 90 days)
+- **Security audit log** (all auth events tracked)
+- **Custom exception handler** (hides internal errors in production)
+
+## Future Improvements
+
+1. Extract `users/` sub-modules (billing, notifications, security, admin) into separate Django apps
+2. Split large service files (`ml_service.py`, `statistics.py`, `magic_analysis_service.py`) into focused modules
+3. Add React Context for auth state and React Query for API caching
+4. Create Docker configuration (Dockerfile + docker-compose.yml)
+5. Add comprehensive unit tests per app alongside existing integration tests

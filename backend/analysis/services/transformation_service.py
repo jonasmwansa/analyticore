@@ -5,6 +5,9 @@ import pandas as pd
 import os
 from django.conf import settings
 from analysis.models import TransformationLog
+from projects.models import Project
+import shutil
+from django.utils import timezone
 
 
 class TransformationService:
@@ -125,11 +128,49 @@ class TransformationService:
         Returns:
             str: path to saved file
         """
-        processed_path = os.path.join(
-            settings.PIPELINE_STORAGE_PATH,
-            'processed',
-            f"{project_id}_processed.csv"
-        )
-        os.makedirs(os.path.dirname(processed_path), exist_ok=True)
+        # Determine paths and backup original data if present
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        processed_dir = os.path.join(settings.PIPELINE_STORAGE_PATH, 'processed')
+        os.makedirs(processed_dir, exist_ok=True)
+
+        processed_path = os.path.join(processed_dir, f"{project_id}_processed_{timestamp}.csv")
+
+        backup_path = None
+        try:
+            project = Project.objects.get(project_id=project_id)
+            # Prefer existing processed file, else original file
+            source_path = project.processed_file_path or project.file_path
+            if source_path and os.path.exists(source_path):
+                backup_dir = os.path.join(settings.PIPELINE_STORAGE_PATH, 'backups', str(project_id))
+                os.makedirs(backup_dir, exist_ok=True)
+                backup_path = os.path.join(backup_dir, f"{project_id}_backup_{timestamp}.csv")
+                shutil.copy2(source_path, backup_path)
+        except Exception:
+            # If anything goes wrong with backup, leave backup_path as None but continue
+            backup_path = None
+
+        # Save new processed file
         df.to_csv(processed_path, index=False)
-        return processed_path
+
+        return processed_path, backup_path
+
+    @staticmethod
+    def restore_backup(project_id, backup_path):
+        """Restore a backup file for a project by setting processed_file_path to the backup path.
+
+        Returns the path set on the project or raises an exception.
+        """
+        project = Project.objects.get(project_id=project_id)
+        if not backup_path or not os.path.exists(backup_path):
+            raise FileNotFoundError('Backup file not found')
+
+        # Optionally copy backup to processed folder to make it the active processed file
+        processed_dir = os.path.join(settings.PIPELINE_STORAGE_PATH, 'processed')
+        os.makedirs(processed_dir, exist_ok=True)
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+        restored_path = os.path.join(processed_dir, f"{project_id}_restored_{timestamp}.csv")
+        shutil.copy2(backup_path, restored_path)
+        project.processed_file_path = restored_path
+        project.status = 'transformed'
+        project.save()
+        return restored_path

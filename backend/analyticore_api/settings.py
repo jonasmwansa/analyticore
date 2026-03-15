@@ -1,9 +1,17 @@
 import os
-import pymysql
 from pathlib import Path
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ModuleNotFoundError:
+    def load_dotenv(*args, **kwargs):
+        return False
 
-pymysql.install_as_MySQLdb()
+try:
+    import pymysql
+except ModuleNotFoundError:
+    pymysql = None
+else:
+    pymysql.install_as_MySQLdb()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -14,7 +22,9 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+if DEBUG:
+    ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -79,6 +89,8 @@ DATABASES = {
 
 # Use MySQL in production by setting environment variable
 if os.environ.get('USE_MYSQL', 'False') == 'True':
+    if pymysql is None:
+        raise RuntimeError('USE_MYSQL=True requires pymysql to be installed')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
@@ -129,6 +141,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    'EXCEPTION_HANDLER': 'analyticore_api.exception_handler.custom_exception_handler',
 }
 
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
@@ -193,3 +206,8 @@ STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
 VAPID_PUBLIC_KEY = os.environ.get('VAPID_PUBLIC_KEY', '')
 VAPID_PRIVATE_KEY = os.environ.get('VAPID_PRIVATE_KEY', '')
+
+OAUTH_SESSION_URL = os.environ.get(
+    'OAUTH_SESSION_URL',
+    'https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data'
+)

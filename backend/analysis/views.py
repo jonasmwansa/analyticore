@@ -9,7 +9,46 @@ from rest_framework.permissions import IsAuthenticated
 from projects.models import Project
 from .models import AnalysisRun, TransformationLog
 from .statistics import StatisticalAnalyzer
-from .services import DataLoaderService, TransformationService, ColumnActionService
+from .services import AutomatedAnalysisService, DataLoaderService, TransformationService, ColumnActionService
+from django.utils import timezone
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def automate_project(request, project_id):
+    """Run the full automated profiling-to-summary pipeline for a project."""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if not project.file_path:
+        return Response({'detail': 'No data uploaded'}, status=status.HTTP_400_BAD_REQUEST)
+
+    df = DataLoaderService.load_dataframe(project)
+    if df is None:
+        return Response({'detail': 'Failed to load data file'}, status=status.HTTP_400_BAD_REQUEST)
+
+    auto_apply_cleaning = request.data.get('auto_apply_cleaning', True)
+    if isinstance(auto_apply_cleaning, str):
+        auto_apply_cleaning = auto_apply_cleaning.strip().lower() not in {'0', 'false', 'no', 'off'}
+
+    try:
+        result = AutomatedAnalysisService.run(
+            project,
+            df,
+            actor=request.user,
+            auto_apply_cleaning=auto_apply_cleaning,
+            source='manual',
+        )
+        return Response({
+            'message': 'Automated analysis pipeline completed successfully',
+            'statistics': result['statistics'],
+            'recommendations': result['recommendations'],
+            'automation': result['automation'],
+        })
+    except Exception as e:
+        return Response({'detail': f'Automation failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(['POST'])
@@ -68,11 +107,28 @@ def apply_transformations(request, project_id):
         
         original_shape = df.shape
         df, applied = TransformationService.apply_rules(df, rules, project)
-        processed_path = TransformationService.save_processed_data(df, project.project_id)
-        
+        processed_result = TransformationService.save_processed_data(df, project.project_id)
+        # save_processed_data returns (processed_path, backup_path)
+        if isinstance(processed_result, (list, tuple)):
+            processed_path, backup_path = processed_result
+        else:
+            processed_path = processed_result
+            backup_path = None
+
         project.processed_file_path = processed_path
         project.status = 'transformed'
-        project.applied_transformations = rules
+        # Audit the applied transformations
+        entry = {
+            'timestamp': timezone.now().isoformat(),
+            'user': getattr(request.user, 'email', str(request.user.id)),
+            'actions': applied,
+            'backup_path': backup_path,
+            'original_shape': list(original_shape),
+            'new_shape': list(df.shape)
+        }
+        existing = project.applied_transformations or []
+        existing.append(entry)
+        project.applied_transformations = existing
         project.save()
         
         return Response({
@@ -352,3 +408,41 @@ def apply_column_action(request, project_id):
     
     except Exception as e:
         return Response({'detail': f'Action failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def rollback_transformations(request, project_id):
+    """Rollback transformations for a project using the latest backup entry."""
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    applied = project.applied_transformations or []
+    if not applied:
+        return Response({'detail': 'No applied transformations to rollback'}, status=status.HTTP_400_BAD_REQUEST)
+
+    last_entry = applied[-1]
+    backup_path = last_entry.get('backup_path')
+    if not backup_path:
+        return Response({'detail': 'No backup available for the last transformation'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        restored = TransformationService.restore_backup(project.project_id, backup_path)
+        # Add audit entry
+        audit = {
+            'timestamp': timezone.now().isoformat(),
+            'user': getattr(request.user, 'email', str(request.user.id)),
+            'action': 'rollback',
+            'restored_from': backup_path,
+            'restored_to': restored
+        }
+        existing = project.applied_transformations or []
+        existing.append(audit)
+        project.applied_transformations = existing
+        project.save()
+
+        return Response({'message': 'Rollback completed', 'restored_path': restored})
+    except Exception as e:
+        return Response({'detail': f'Rollback failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

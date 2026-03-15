@@ -19,13 +19,13 @@ export function RecommendationsSection({
       <Card className="bg-white border border-slate-200 rounded-xl p-12 shadow-sm text-center">
         <Wand2 className="w-16 h-16 text-[#94A3B8] mx-auto mb-4" />
         <h3 className="text-xl font-bold text-[#0F172A] mb-2">No Recommendations Yet</h3>
-        <p className="text-[#64748B] mb-6">Click "AI Insights" in the Data Preview tab to analyze your data</p>
+        <p className="text-[#64748B] mb-6">Run the pipeline to generate cleaning and transformation recommendations from your dataset.</p>
         <Button
           onClick={onGoToAnalyze}
           data-testid="goto-analyze-btn"
           className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white rounded-lg h-11 px-6 font-semibold shadow-md shadow-violet-500/20"
         >
-          Analyze Data Now
+          Run Pipeline
         </Button>
       </Card>
     );
@@ -36,7 +36,7 @@ export function RecommendationsSection({
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-2xl font-bold text-[#0F172A] mb-1">AI Cleaning Recommendations</h3>
-          <p className="text-[#64748B]">Select transformations to apply to your data</p>
+          <p className="text-[#64748B]">Review the generated recommendations, then choose which extra transformations to apply.</p>
         </div>
         <Button
           onClick={onApplyTransformations}

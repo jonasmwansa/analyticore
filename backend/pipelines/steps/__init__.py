@@ -87,3 +87,56 @@ class ColumnUnderstandingStep(PipelineStep):
                 'category_count': len(value_counts)
             }
         return stats
+
+
+class CleaningStep(PipelineStep):
+    def __init__(self):
+        super().__init__("Cleaning Step")
+
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        df = context.current_df
+        rules = context.config.get('cleaning_rules', []) if context.config else []
+
+        applied = 0
+        for rule in rules:
+            column = rule.get('column')
+            action = rule.get('action')
+            params = rule.get('parameters', {}) or {}
+
+            before_rows = len(df)
+
+            if action == 'fill_mean' and column in df.columns:
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    df[column] = df[column].fillna(df[column].mean())
+            elif action == 'fill_median' and column in df.columns:
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    df[column] = df[column].fillna(df[column].median())
+            elif action == 'fill_mode' and column in df.columns:
+                mode_val = df[column].mode()
+                if len(mode_val) > 0:
+                    df[column] = df[column].fillna(mode_val[0])
+            elif action == 'drop_nulls' and column in df.columns:
+                df = df.dropna(subset=[column])
+            elif action == 'remove_duplicates':
+                df = df.drop_duplicates()
+            elif action == 'remove_outliers' and column in df.columns and pd.api.types.is_numeric_dtype(df[column]):
+                Q1 = df[column].quantile(0.25)
+                Q3 = df[column].quantile(0.75)
+                IQR = Q3 - Q1
+                df = df[(df[column] >= Q1 - 1.5 * IQR) & (df[column] <= Q3 + 1.5 * IQR)]
+
+            after_rows = len(df)
+            context.log_change(
+                step=self.name,
+                action=action,
+                target=column or 'dataset',
+                reason=f'Applied cleaning action {action}',
+                impact={'rows_before': before_rows, 'rows_after': after_rows},
+                confidence=0.9
+            )
+
+            applied += 1
+
+        context.current_df = df
+        context.statistics['cleaning_rules_applied'] = applied
+        return context

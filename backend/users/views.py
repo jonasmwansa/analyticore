@@ -6,12 +6,16 @@ from rest_framework.authtoken.models import Token
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+import os
 import requests
 from .models import User, EmailVerificationToken, GoogleAuthSession
 from .serializers import (
     UserSerializer, UserRegistrationSerializer, 
     UserLoginSerializer, EmailVerificationSerializer
 )
+import logging
+
+logger = logging.getLogger(__name__)
 
 def send_verification_email(user, token):
     frontend_url = settings.CORS_ALLOWED_ORIGINS[0] if settings.CORS_ALLOWED_ORIGINS else 'http://localhost:3000'
@@ -59,11 +63,9 @@ def register(request):
         try:
             send_verification_email(user, token)
         except Exception as e:
-            user.delete()
-            return Response(
-                {'detail': f'Failed to send verification email: {str(e)}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            # Don't delete the user on transient email failures
+            # They can request a new verification email later
+            logger.error("Failed to send verification email to %s: %s", user.email, str(e))
         
         return Response(
             {'message': 'Registration successful. Please check your email to verify your account.'},
@@ -116,8 +118,12 @@ def google_auth_callback(request):
         return Response({'detail': 'Session ID required'}, status=status.HTTP_400_BAD_REQUEST)
     
     try:
+        oauth_session_url = getattr(settings, 'OAUTH_SESSION_URL', None) or os.environ.get(
+            'OAUTH_SESSION_URL',
+            'https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data'
+        )
         response = requests.get(
-            'https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data',
+            oauth_session_url,
             headers={'X-Session-ID': session_id},
             timeout=10
         )
