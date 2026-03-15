@@ -224,4 +224,25 @@ export const pipelinesAPI = {
   getRunDetails: (runId) => api.get(`/pipelines/runs/${runId}/`),
 };
 
+// Automated Analysis Pipeline API
+export const automatedPipelineAPI = {
+  // Start automated analysis
+  start: (projectId, llmEnabled = true) => 
+    api.post(`/analysis/pipeline/start/${projectId}`, { llm_enabled: llmEnabled }),
+  
+  // Get pipeline status
+  getStatus: (pipelineId) => api.get(`/analysis/pipeline/${pipelineId}/status`),
+  
+  // Control pipeline
+  cancel: (pipelineId) => api.post(`/analysis/pipeline/${pipelineId}/cancel`),
+  pause: (pipelineId) => api.post(`/analysis/pipeline/${pipelineId}/pause`),
+  resume: (pipelineId) => api.post(`/analysis/pipeline/${pipelineId}/resume`),
+  
+  // Get results
+  getResults: (pipelineId) => api.get(`/analysis/pipeline/${pipelineId}/results`),
+  
+  // Get LLM status
+  getLLMStatus: () => api.get('/analysis/pipeline/llm-status'),
+};
+
 export default api;

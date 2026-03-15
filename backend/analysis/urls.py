@@ -2,10 +2,20 @@ from django.urls import path
 from . import views
 from . import ml_views
 from . import magic_views
+from . import pipeline_views
 
 app_name = 'analysis'
 
 urlpatterns = [
+    # Pipeline endpoints (automated analysis)
+    path('pipeline/start/<uuid:project_id>', pipeline_views.start_pipeline_view, name='pipeline-start'),
+    path('pipeline/<uuid:pipeline_id>/status', pipeline_views.get_pipeline_status_view, name='pipeline-status'),
+    path('pipeline/<uuid:pipeline_id>/cancel', pipeline_views.cancel_pipeline, name='pipeline-cancel'),
+    path('pipeline/<uuid:pipeline_id>/pause', pipeline_views.pause_pipeline, name='pipeline-pause'),
+    path('pipeline/<uuid:pipeline_id>/resume', pipeline_views.resume_pipeline, name='pipeline-resume'),
+    path('pipeline/<uuid:pipeline_id>/results', pipeline_views.get_pipeline_results, name='pipeline-results'),
+    path('pipeline/llm-status', pipeline_views.get_llm_status_view, name='llm-status'),
+    
     # Analysis endpoints
     path('<uuid:project_id>/automate', views.automate_project, name='automate'),
     path('<uuid:project_id>/analyze', views.analyze_data, name='analyze'),

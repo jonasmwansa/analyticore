@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Database, FileSpreadsheet, Wand2, BarChart3, Zap, History } from 'lucide-react';
+import { Database, FileSpreadsheet, Wand2, BarChart3, Zap, History, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { projectsAPI, exportsAPI, analysisAPI } from '../api';
 import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel } from '../components/ui/alert-dialog';
 import { Button } from '../components/ui/button';
 import AnalysisDashboard from '../components/analysis/AnalysisDashboard';
 import AutomatedPipelineReport from '../components/project/AutomatedPipelineReport';
+import AutomatedPipeline from '../components/analysis/AutomatedPipeline';
 import TransformationHistory from '../components/project/TransformationHistory';
 import DataSourcePicker from '../components/data/DataSourcePicker';
 import DashboardLayout from '../components/DashboardLayout';
@@ -342,23 +343,18 @@ function ProjectView({ user }) {
             </TabsContent>
 
             <TabsContent value="pipeline" data-testid="pipeline-tab-content">
-              {project?.statistics?.automation ? (
-                <AutomatedPipelineReport project={project} />
-              ) : (
-                <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-                  <p className="font-semibold uppercase tracking-[0.22em] text-slate-400">Pipeline</p>
-                  <h3 className="mt-3 text-3xl font-bold text-slate-900">Run the full automated analysis flow</h3>
-                  <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-slate-500">
-                    This project has data attached, but it has not been processed through the new staged AutoAnalyst experience yet.
-                    Run the pipeline to generate the animated stage flow, detailed reports, and executive summary.
-                  </p>
-                  <Button
-                    onClick={analyzeData}
-                    disabled={analyzing}
-                    className="mt-6 bg-[#6366F1] hover:bg-[#4F46E5] text-white"
-                  >
-                    {analyzing ? 'Running Pipeline...' : 'Run Pipeline'}
-                  </Button>
+              <AutomatedPipeline 
+                projectId={projectId}
+                projectName={project?.name}
+                onComplete={(results) => {
+                  fetchProject();
+                  fetchDataPreview();
+                  toast.success('Automated analysis complete!');
+                }}
+              />
+              {project?.statistics?.automation && (
+                <div className="mt-6">
+                  <AutomatedPipelineReport project={project} />
                 </div>
               )}
             </TabsContent>
