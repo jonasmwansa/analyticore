@@ -175,6 +175,21 @@ backend:
         agent: "testing"
         comment: "✅ TESTED: Export functionality fully working! PDF export generates valid 8.4KB files with proper headers. Excel export generates valid 11.2KB files with proper XLSX signatures. Both return base64 encoded content with correct filenames and MIME types. Fixed PDF stylesheet conflict issue."
 
+  - task: "Enhanced Visualization and Export Features"
+    implemented: true
+    working: true
+    file: "analysis/chart_intelligence.py, exports/enhanced_views.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Implemented smart chart recommendation engine with ChartRecommendationEngine, enhanced export endpoints for CSV/PNG chart exports, LLM-powered chart narratives"
+      - working: true
+        agent: "testing"
+        comment: "✅ TESTED: Enhanced visualization features working! Smart chart recommendations implemented with ChartRecommendationEngine. Export endpoints functional: CSV exports for statistics/visualizations/correlations, PNG chart exports for histogram/correlation_matrix/scatter_plot/box_plot. LLM chart insights integration verified. Authentication, project creation, data upload all working. Pipelines execute with enhanced features (smart_recommendations, column_profiles, llm_chart_insights). Chart intelligence service generating data-driven recommendations. Export endpoints return valid base64 content. Minor: LLM processing can take 60+ seconds for insights/visualization stages."
+
 frontend:
   - task: "Automated Pipeline Component"
     implemented: true
@@ -216,3 +231,5 @@ agent_communication:
     message: "✅ FRONTEND TESTING COMPLETE! Automated pipeline feature fully functional end-to-end. Tested complete user flow: authentication, project creation, CSV upload, pipeline execution with LLM integration (qwen2.5:1.5b), and results display across 6 tabs. Pipeline executes instantly. All UI components rendering correctly. Note: Email verification is required for new user signups before login is allowed - created verified test account for testing. Minor observation: Stage progress UI in AutomatedPipeline component shows selective stages during execution, but final AutoAnalyst component shows all 5 main stages completed. All data and results are accurate and functional."
   - agent: "testing"
     message: "✅ EXPORT FUNCTIONALITY TESTING COMPLETE! Successfully verified review requirements: 1) LLM Status Check - qwen2.5:1.5b available and working, 2) Project & Pipeline Test - authentication, project creation, data upload all functional, 3) Export Endpoints Test - Both PDF and Excel exports working perfectly with valid base64 content and proper file headers. Fixed PDF stylesheet conflict. All backend endpoints responding correctly. Ready for production use."
+  - agent: "testing"
+    message: "✅ ENHANCED VISUALIZATION FEATURES TESTED! Comprehensive testing completed for chart intelligence and enhanced exports: 1) Smart Chart Recommendations - ChartRecommendationEngine working with data-driven chart suggestions (histogram, correlation_matrix, scatter_plot, box_plot) based on column analysis, 2) Enhanced Export Endpoints - CSV exports functional for statistics/visualizations/correlations sections, PNG chart exports working with valid base64 content, 3) LLM Integration - Chart narratives and insights generation confirmed, pipeline enhanced with smart_recommendations/column_profiles/llm_chart_insights. Authentication working with verified test user. Pipeline execution with LLM can take 60+ seconds but operates correctly. All enhanced features verified and functional."

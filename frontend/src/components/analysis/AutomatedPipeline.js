@@ -102,6 +102,30 @@ export default function AutomatedPipeline({ projectId, projectName, onComplete }
     setExporting(false);
   };
 
+  const exportCSV = async (section) => {
+    if (!pipelineId) return;
+    setExporting(true);
+    try {
+      const response = await automatedPipelineAPI.exportCSV(pipelineId, section);
+      downloadFile(response.data.content, response.data.filename, response.data.content_type);
+    } catch (err) {
+      setError(`Failed to export ${section} CSV`);
+    }
+    setExporting(false);
+  };
+
+  const exportChart = async (chartType, columns = []) => {
+    if (!pipelineId) return;
+    setExporting(true);
+    try {
+      const response = await automatedPipelineAPI.exportChart(pipelineId, chartType, columns);
+      downloadFile(response.data.content, response.data.filename, response.data.content_type);
+    } catch (err) {
+      setError(`Failed to export chart`);
+    }
+    setExporting(false);
+  };
+
   // Start the pipeline
   const startPipeline = async () => {
     setError(null);
@@ -528,13 +552,98 @@ export default function AutomatedPipeline({ projectId, projectName, onComplete }
         <TabsContent value="visualization" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart2 className="w-5 h-5" />
-                Visualization Recommendations
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <BarChart2 className="w-5 h-5" />
+                  Smart Visualization Recommendations
+                </CardTitle>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => exportCSV('visualizations')}
+                  disabled={exporting}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              {results.visualization?.suggested_visualizations?.length > 0 ? (
+              {/* Smart Recommendations */}
+              {results.visualization?.smart_recommendations?.recommendations?.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {results.visualization.smart_recommendations.recommendations.map((rec, idx) => (
+                      <div key={idx} className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white">{rec.title}</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">{rec.description}</p>
+                          </div>
+                          <Badge variant="secondary" className="ml-2">
+                            Priority: {rec.priority}/10
+                          </Badge>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 mt-3">
+                          <Badge variant="default" className="bg-purple-500">{rec.chart_type}</Badge>
+                          {rec.columns?.slice(0, 3).map((col, i) => (
+                            <Badge key={i} variant="outline">{col}</Badge>
+                          ))}
+                        </div>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 italic">
+                          {rec.reasoning}
+                        </p>
+                        {results.visualization?.llm_chart_insights?.[rec.chart_type] && (
+                          <div className="mt-3 p-2 bg-purple-50 dark:bg-purple-900/20 rounded text-sm">
+                            <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium mb-1">
+                              <Brain className="w-3 h-3" /> AI Insight
+                            </div>
+                            <p className="text-gray-700 dark:text-gray-300 text-xs">
+                              {results.visualization.llm_chart_insights[rec.chart_type].narrative}
+                            </p>
+                          </div>
+                        )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => exportChart(rec.chart_type, rec.columns)}
+                          disabled={exporting}
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Export Chart
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Data Summary */}
+                  {results.visualization?.smart_recommendations?.data_summary && (
+                    <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <h5 className="font-medium text-blue-800 dark:text-blue-300 mb-2">Data Profile</h5>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Numeric Columns:</span>
+                          <span className="ml-2 font-medium">{results.visualization.smart_recommendations.data_summary.numeric_columns}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Categorical:</span>
+                          <span className="ml-2 font-medium">{results.visualization.smart_recommendations.data_summary.categorical_columns}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">DateTime:</span>
+                          <span className="ml-2 font-medium">{results.visualization.smart_recommendations.data_summary.datetime_columns}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Best Charts:</span>
+                          <span className="ml-2 font-medium">{results.visualization.smart_recommendations.data_summary.best_chart_types?.join(', ')}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : results.visualization?.suggested_visualizations?.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
                   {results.visualization.suggested_visualizations.map((viz, idx) => (
                     <div key={idx} className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

@@ -690,3 +690,206 @@ def export_pipeline_excel(request, pipeline_id):
         import traceback
         traceback.print_exc()
         return Response({'detail': f'Excel export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pipeline_csv(request, pipeline_id):
+    """
+    Export specific pipeline section as CSV
+    """
+    from analysis.models import PipelineProgress
+    
+    section = request.query_params.get('section', 'statistics')
+    
+    try:
+        progress = PipelineProgress.objects.select_related('project').get(
+            pipeline_id=pipeline_id,
+            user=request.user
+        )
+    except PipelineProgress.DoesNotExist:
+        return Response({'detail': 'Pipeline not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if progress.status != 'completed':
+        return Response({'detail': 'Pipeline not completed yet'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        results = progress.final_results
+        buffer = io.StringIO()
+        safe_name = progress.project.name.replace(' ', '_').replace('"', '').replace("'", '')
+        
+        if section == 'statistics':
+            statistics = results.get('statistics', {})
+            numeric_summary = statistics.get('numeric_summary', {})
+            if numeric_summary:
+                df = pd.DataFrame(numeric_summary).T
+                df.index.name = 'column'
+                df.to_csv(buffer)
+            filename = f'{safe_name}_statistics.csv'
+            
+        elif section == 'correlation':
+            correlation = results.get('correlation', {})
+            top_corr = correlation.get('top_correlations', [])
+            if top_corr:
+                df = pd.DataFrame(top_corr)
+                df.to_csv(buffer, index=False)
+            filename = f'{safe_name}_correlations.csv'
+            
+        elif section == 'cleaning':
+            cleaning = results.get('cleaning', {})
+            actions = cleaning.get('applied_actions', [])
+            if actions:
+                df = pd.DataFrame(actions)
+                df.to_csv(buffer, index=False)
+            filename = f'{safe_name}_cleaning_actions.csv'
+            
+        elif section == 'insights':
+            insights = results.get('insights', {})
+            key_insights = insights.get('key_insights', [])
+            if key_insights:
+                df = pd.DataFrame(key_insights)
+                df.to_csv(buffer, index=False)
+            filename = f'{safe_name}_insights.csv'
+            
+        elif section == 'visualizations':
+            viz = results.get('visualization', {})
+            recommendations = viz.get('smart_recommendations', {}).get('recommendations', [])
+            if recommendations:
+                df = pd.DataFrame(recommendations)
+                df.to_csv(buffer, index=False)
+            filename = f'{safe_name}_visualization_recommendations.csv'
+            
+        elif section == 'summary':
+            summary = results.get('summary', {})
+            summary_data = {
+                'metric': ['Total Rows', 'Total Columns', 'Quality Score', 'Quality Label'],
+                'value': [
+                    summary.get('total_rows', 0),
+                    summary.get('total_columns', 0),
+                    summary.get('quality_score', 'N/A'),
+                    summary.get('quality_label', 'N/A')
+                ]
+            }
+            df = pd.DataFrame(summary_data)
+            df.to_csv(buffer, index=False)
+            filename = f'{safe_name}_summary.csv'
+            
+        else:
+            return Response({'detail': f'Unknown section: {section}'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        content = buffer.getvalue()
+        
+        return Response({
+            'filename': filename,
+            'content_type': 'text/csv',
+            'content': base64.b64encode(content.encode('utf-8')).decode('utf-8'),
+            'encoding': 'base64'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'detail': f'CSV export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_chart_png(request, pipeline_id):
+    """
+    Export a specific chart as PNG based on recommendation
+    """
+    from analysis.models import PipelineProgress
+    from analysis.chart_intelligence import ChartRecommendationEngine
+    
+    chart_type = request.query_params.get('chart_type', 'histogram')
+    columns = request.query_params.getlist('columns', [])
+    
+    try:
+        progress = PipelineProgress.objects.select_related('project').get(
+            pipeline_id=pipeline_id,
+            user=request.user
+        )
+    except PipelineProgress.DoesNotExist:
+        return Response({'detail': 'Pipeline not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Load dataframe
+    project = progress.project
+    file_path = project.processed_file_path or project.file_path
+    
+    try:
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith(('.xlsx', '.xls')):
+            df = pd.read_excel(file_path)
+        else:
+            return Response({'detail': 'Unsupported file format'}, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        return Response({'detail': f'Failed to load data: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+    try:
+        fig, ax = plt.subplots(figsize=(10, 6))
+        safe_name = project.name.replace(' ', '_').replace('"', '').replace("'", '')
+        
+        if chart_type == 'histogram' and columns:
+            col = columns[0]
+            if col in df.columns:
+                df[col].hist(ax=ax, bins=30, edgecolor='black', alpha=0.7)
+                ax.set_xlabel(col)
+                ax.set_ylabel('Frequency')
+                ax.set_title(f'Distribution of {col}')
+        
+        elif chart_type == 'scatter_plot' and len(columns) >= 2:
+            col1, col2 = columns[0], columns[1]
+            if col1 in df.columns and col2 in df.columns:
+                ax.scatter(df[col1], df[col2], alpha=0.6)
+                ax.set_xlabel(col1)
+                ax.set_ylabel(col2)
+                ax.set_title(f'{col1} vs {col2}')
+        
+        elif chart_type == 'box_plot' and columns:
+            col = columns[0]
+            if col in df.columns:
+                df.boxplot(column=col, ax=ax)
+                ax.set_title(f'Box Plot of {col}')
+        
+        elif chart_type == 'bar_chart' and columns:
+            col = columns[0]
+            if col in df.columns:
+                value_counts = df[col].value_counts().head(15)
+                value_counts.plot(kind='bar', ax=ax, color='steelblue')
+                ax.set_xlabel(col)
+                ax.set_ylabel('Count')
+                ax.set_title(f'Frequency of {col}')
+                plt.xticks(rotation=45, ha='right')
+        
+        elif chart_type == 'correlation_matrix':
+            numeric_df = df.select_dtypes(include=[np.number])
+            if len(numeric_df.columns) >= 2:
+                corr_matrix = numeric_df.corr()
+                sns.heatmap(corr_matrix, annot=len(numeric_df.columns) <= 8, 
+                           cmap='RdBu_r', center=0, ax=ax)
+                ax.set_title('Correlation Matrix')
+        
+        else:
+            ax.text(0.5, 0.5, f'Chart type "{chart_type}" not supported', 
+                   ha='center', va='center', fontsize=14)
+        
+        plt.tight_layout()
+        
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight', dpi=150)
+        plt.close(fig)
+        buffer.seek(0)
+        
+        return Response({
+            'filename': f'{safe_name}_{chart_type}.png',
+            'content_type': 'image/png',
+            'content': base64.b64encode(buffer.getvalue()).decode('utf-8'),
+            'encoding': 'base64'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'detail': f'Chart export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

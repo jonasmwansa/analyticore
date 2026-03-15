@@ -80,3 +80,7 @@ db.sqlite3
 
 # Celery
 celerybeat-schedule*
+-e 
+# Environment files
+*.env
+*.env.*

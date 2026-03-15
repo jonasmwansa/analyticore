@@ -20,4 +20,6 @@ urlpatterns = [
     # Pipeline Results Export
     path('pipeline/<uuid:pipeline_id>/export-pdf', enhanced_views.export_pipeline_pdf, name='export-pipeline-pdf'),
     path('pipeline/<uuid:pipeline_id>/export-excel', enhanced_views.export_pipeline_excel, name='export-pipeline-excel'),
+    path('pipeline/<uuid:pipeline_id>/export-csv', enhanced_views.export_pipeline_csv, name='export-pipeline-csv'),
+    path('pipeline/<uuid:pipeline_id>/export-chart', enhanced_views.export_chart_png, name='export-pipeline-chart'),
 ]

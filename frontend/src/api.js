@@ -247,6 +247,12 @@ export const automatedPipelineAPI = {
   // Export pipeline results
   exportPDF: (pipelineId) => api.get(`/exports/pipeline/${pipelineId}/export-pdf`),
   exportExcel: (pipelineId) => api.get(`/exports/pipeline/${pipelineId}/export-excel`),
+  exportCSV: (pipelineId, section) => api.get(`/exports/pipeline/${pipelineId}/export-csv?section=${section}`),
+  exportChart: (pipelineId, chartType, columns = []) => {
+    const params = new URLSearchParams({ chart_type: chartType });
+    columns.forEach(col => params.append('columns', col));
+    return api.get(`/exports/pipeline/${pipelineId}/export-chart?${params}`);
+  },
 };
 
 // Project Export API

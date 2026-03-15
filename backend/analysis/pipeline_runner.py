@@ -384,13 +384,42 @@ class PipelineRunner:
         }
     
     def _stage_visualization(self) -> Dict[str, Any]:
-        """Stage 8: Visualization Recommendations"""
+        """Stage 8: Visualization Recommendations with Smart Chart Intelligence"""
+        from .chart_intelligence import get_smart_chart_recommendations
+        
+        # Get smart chart recommendations based on data analysis
+        smart_recommendations = get_smart_chart_recommendations(self.df)
+        
+        # Also get magic analysis suggestions for backward compatibility
         magic_result = run_magic_analysis(self.df, self.project.name)
-        suggestions = magic_result.get('suggested_visualizations', [])
+        magic_suggestions = magic_result.get('suggested_visualizations', [])
+        
+        # Generate LLM narratives for top recommendations
+        llm_chart_insights = {}
+        if self.llm and self.llm.is_available:
+            for rec in smart_recommendations.get('recommendations', [])[:3]:
+                narrative = self.llm.generate_chart_narrative(
+                    chart_type=rec['chart_type'],
+                    columns=rec['columns'],
+                    data_summary=smart_recommendations.get('data_summary', {}),
+                    chart_config=rec.get('config', {})
+                )
+                llm_chart_insights[rec['chart_type']] = {
+                    'title': rec['title'],
+                    'narrative': narrative,
+                    'reasoning': rec['reasoning']
+                }
+            
+            self.progress.llm_insights['visualization'] = llm_chart_insights
+            self.progress.save(update_fields=['llm_insights'])
         
         return {
-            'suggested_visualizations': _convert_to_serializable(suggestions),
-            'count': len(suggestions)
+            'smart_recommendations': _convert_to_serializable(smart_recommendations),
+            'suggested_visualizations': _convert_to_serializable(magic_suggestions),
+            'column_profiles': smart_recommendations.get('column_profiles', {}),
+            'best_chart_types': smart_recommendations.get('data_summary', {}).get('best_chart_types', []),
+            'llm_chart_insights': llm_chart_insights,
+            'count': len(smart_recommendations.get('recommendations', []))
         }
     
     def _stage_summary(self) -> Dict[str, Any]:

@@ -323,12 +323,23 @@
 
     this.addEventListener('load', function() {
       if (this.status >= 400) {
+        let responseText = '';
+        try {
+          // Only access responseText if responseType allows it
+          if (this.responseType === '' || this.responseType === 'text') {
+            responseText = this.responseText?.substring(0, 1000);
+          } else {
+            responseText = '[Binary response - content not available]';
+          }
+        } catch (e) {
+          responseText = '[Could not read response]';
+        }
         sendToParent('networkError', {
           url: this._url,
           method: this._method,
           status: this.status,
           statusText: this.statusText,
-          responseText: this.responseText?.substring(0, 1000),
+          responseText: responseText,
           type: 'XHR Error'
         }, 'error');
       }

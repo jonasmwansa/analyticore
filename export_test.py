@@ -1,235 +1,191 @@
 #!/usr/bin/env python3
 """
-Export Testing - Test export endpoints with existing pipeline
+Simplified Backend Test for Enhanced Export Features
+Tests export endpoints using existing completed pipelines.
 """
-
 import requests
-import sys
 import json
 import base64
+import csv
+import io
+import time
+import os
+import sys
 
-class ExportTester:
-    def __init__(self, base_url="https://private-analyst.preview.emergentagent.com/api"):
-        self.base_url = base_url
-        self.session = requests.Session()
-        self.test_user_email = "export_test@example.com"
-        self.test_password = "TestPassword123!"
-        # Using an existing completed pipeline ID
-        self.pipeline_id = "302ca218-fb95-44ac-afe9-4d87b4709a63"
-        print(f"📤 Export Endpoint Testing")
-        print(f"📍 Base URL: {base_url}")
-        print(f"🔧 Testing with Pipeline: {self.pipeline_id}")
-        print("=" * 80)
-
-    def authenticate(self):
-        """Authenticate and get token"""
-        print(f"\n🔐 Authenticating...")
-        try:
-            response = self.session.post(f"{self.base_url}/auth/login", json={
-                "email": self.test_user_email,
-                "password": self.test_password
-            })
-            
-            if response.status_code == 200:
-                data = response.json()
-                token = data['token']
-                self.session.headers.update({'Authorization': f"Token {token}"})
-                print(f"   ✅ Authenticated as: {data['user']['name']}")
-                return True
-            else:
-                print(f"   ❌ Authentication failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"   ❌ Authentication error: {e}")
-            return False
-
-    def test_llm_status(self):
-        """Test LLM status endpoint"""
-        print(f"\n🤖 Testing LLM Status...")
-        try:
-            response = self.session.get(f"{self.base_url}/analysis/pipeline/llm-status")
-            
-            if response.status_code == 200:
-                data = response.json()
-                print(f"   ✅ LLM Status: {'Available' if data.get('available') else 'Not Available'}")
-                print(f"   📦 Model: {data.get('model', 'Unknown')}")
-                return True
-            else:
-                print(f"   ❌ LLM status check failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"   ❌ LLM status error: {e}")
-            return False
-
-    def test_pipeline_status(self):
-        """Test pipeline status to verify it exists"""
-        print(f"\n📊 Verifying Pipeline Status...")
-        try:
-            response = self.session.get(f"{self.base_url}/analysis/pipeline/{self.pipeline_id}/status")
-            
-            if response.status_code == 200:
-                data = response.json()
-                status = data.get('status', 'unknown')
-                project_name = data.get('project_name', 'unknown')
-                print(f"   ✅ Pipeline exists: {status}")
-                print(f"   📁 Project: {project_name}")
-                return status == 'completed'
-            else:
-                print(f"   ❌ Pipeline status check failed: {response.status_code}")
-                return False
-        except Exception as e:
-            print(f"   ❌ Pipeline status error: {e}")
-            return False
-
-    def test_export_pdf(self):
-        """Test PDF export"""
-        print(f"\n📄 Testing PDF Export...")
-        try:
-            response = self.session.get(f"{self.base_url}/exports/pipeline/{self.pipeline_id}/export-pdf")
-            
-            if response.status_code == 200:
-                data = response.json()
-                filename = data.get('filename', 'unknown')
-                content_type = data.get('content_type', 'unknown')
-                encoding = data.get('encoding', 'unknown')
-                
-                print(f"   ✅ PDF Generated: {filename}")
-                print(f"   📦 Content Type: {content_type}")
-                print(f"   🔢 Encoding: {encoding}")
-                
-                # Verify base64 content
-                if 'content' in data and encoding == 'base64':
-                    try:
-                        pdf_data = base64.b64decode(data['content'])
-                        print(f"   ✅ Base64 decoded successfully ({len(pdf_data)} bytes)")
-                        
-                        # Check if it's a valid PDF by looking for PDF header
-                        if pdf_data.startswith(b'%PDF-'):
-                            print(f"   ✅ Valid PDF file header detected")
-                        else:
-                            print(f"   ⚠️  PDF header not detected (first 10 bytes: {pdf_data[:10]})")
-                        
-                        return True
-                    except Exception as e:
-                        print(f"   ❌ Failed to decode base64: {e}")
-                        return False
-                else:
-                    print(f"   ❌ Missing or invalid content")
-                    return False
-            else:
-                print(f"   ❌ PDF export failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    print(f"   🚨 Error: {error_data}")
-                except:
-                    print(f"   🚨 Error: {response.text[:200]}")
-                return False
-        except Exception as e:
-            print(f"   ❌ PDF export error: {e}")
-            return False
-
-    def test_export_excel(self):
-        """Test Excel export"""
-        print(f"\n📊 Testing Excel Export...")
-        try:
-            response = self.session.get(f"{self.base_url}/exports/pipeline/{self.pipeline_id}/export-excel")
-            
-            if response.status_code == 200:
-                data = response.json()
-                filename = data.get('filename', 'unknown')
-                content_type = data.get('content_type', 'unknown')
-                encoding = data.get('encoding', 'unknown')
-                
-                print(f"   ✅ Excel Generated: {filename}")
-                print(f"   📦 Content Type: {content_type}")
-                print(f"   🔢 Encoding: {encoding}")
-                
-                # Verify base64 content
-                if 'content' in data and encoding == 'base64':
-                    try:
-                        excel_data = base64.b64decode(data['content'])
-                        print(f"   ✅ Base64 decoded successfully ({len(excel_data)} bytes)")
-                        
-                        # Check if it's a valid Excel file by looking for Excel signature
-                        if excel_data.startswith(b'PK'):  # Excel files are ZIP-based
-                            print(f"   ✅ Valid Excel file signature detected")
-                        else:
-                            print(f"   ⚠️  Excel signature not detected (first 10 bytes: {excel_data[:10]})")
-                        
-                        return True
-                    except Exception as e:
-                        print(f"   ❌ Failed to decode base64: {e}")
-                        return False
-                else:
-                    print(f"   ❌ Missing or invalid content")
-                    return False
-            else:
-                print(f"   ❌ Excel export failed: {response.status_code}")
-                try:
-                    error_data = response.json()
-                    print(f"   🚨 Error: {error_data}")
-                except:
-                    print(f"   🚨 Error: {response.text[:200]}")
-                return False
-        except Exception as e:
-            print(f"   ❌ Excel export error: {e}")
-            return False
-
-    def run_tests(self):
-        """Run export tests"""
-        print(f"🔬 STARTING EXPORT FUNCTIONALITY TESTS")
-        
-        # Authentication
-        if not self.authenticate():
-            print(f"\n🚨 CRITICAL FAILURE: Authentication failed")
-            return 1
-            
-        # LLM Status (part of review requirements)
-        llm_status = self.test_llm_status()
-        
-        # Verify pipeline exists
-        pipeline_valid = self.test_pipeline_status()
-        if not pipeline_valid:
-            print(f"\n🚨 CRITICAL FAILURE: Pipeline not available for export testing")
-            return 1
-            
-        # Export tests
-        pdf_success = self.test_export_pdf()
-        excel_success = self.test_export_excel()
-        
-        # Final results
-        print(f"\n" + "=" * 80)
-        print(f"📊 EXPORT TESTING RESULTS")
-        print(f"   🔐 Authentication: ✅")
-        print(f"   🤖 LLM Status: {'✅' if llm_status else '❌'}")
-        print(f"   📊 Pipeline Verified: {'✅' if pipeline_valid else '❌'}")
-        print(f"   📄 PDF Export: {'✅' if pdf_success else '❌'}")
-        print(f"   📊 Excel Export: {'✅' if excel_success else '❌'}")
-        
-        if llm_status and pipeline_valid and pdf_success and excel_success:
-            print(f"\n✅ ALL EXPORT TESTS PASSED")
-            print(f"   • LLM Integration Available")
-            print(f"   • Pipeline Results Accessible")
-            print(f"   • PDF Export Working with Valid Content")
-            print(f"   • Excel Export Working with Valid Content")
-            return 0
-        else:
-            failed_tests = []
-            if not llm_status:
-                failed_tests.append("LLM Status")
-            if not pdf_success:
-                failed_tests.append("PDF Export")
-            if not excel_success:
-                failed_tests.append("Excel Export")
-            
-            print(f"\n❌ EXPORT TESTS FAILED")
-            print(f"   Failed: {', '.join(failed_tests)}")
-            return 1
+# Configuration
+BASE_URL = "https://private-analyst.preview.emergentagent.com/api"
+TEST_EMAIL = "verified_test@example.com"
+TEST_PASSWORD = "TestPassword123!"
 
 def main():
-    """Main test execution"""
-    tester = ExportTester()
-    return tester.run_tests()
+    """Test export functionality directly"""
+    print("🧪 Testing Enhanced Export Features")
+    print("=" * 50)
+    
+    session = requests.Session()
+    
+    # Login
+    print("🔄 Logging in...")
+    login_response = session.post(f"{BASE_URL}/auth/login", 
+                                json={"email": TEST_EMAIL, "password": TEST_PASSWORD})
+    
+    if login_response.status_code != 200:
+        print(f"❌ Login failed: {login_response.status_code}")
+        return False
+    
+    token = login_response.json()["token"]
+    session.headers.update({"Authorization": f"Token {token}"})
+    print("✅ Login successful")
+    
+    # Find a completed pipeline
+    print("🔄 Looking for completed pipelines...")
+    
+    # Try the known pipeline ID from our previous test
+    test_pipeline_ids = [
+        "92abec8d-16f2-49e4-864f-00397105f388", 
+        "72307e31-6e0a-4bbc-aa47-e8461542a3f7"
+    ]
+    
+    completed_pipeline = None
+    for pipeline_id in test_pipeline_ids:
+        try:
+            status_response = session.get(f"{BASE_URL}/analysis/pipeline/{pipeline_id}/status")
+            if status_response.status_code == 200:
+                status_data = status_response.json()
+                if status_data.get("status") == "completed":
+                    completed_pipeline = pipeline_id
+                    print(f"✅ Found completed pipeline: {pipeline_id}")
+                    break
+                else:
+                    print(f"🔄 Pipeline {pipeline_id}: {status_data.get('status')} ({status_data.get('progress_percent', 0)}%)")
+        except Exception as e:
+            continue
+    
+    if not completed_pipeline:
+        print("❌ No completed pipeline found for testing")
+        print("⚠️  The enhanced pipeline features may still be running")
+        return False
+    
+    # Test export endpoints
+    print(f"\n🧪 Testing export endpoints with pipeline: {completed_pipeline}")
+    
+    success_count = 0
+    total_tests = 0
+    
+    # Test CSV exports
+    csv_sections = ["statistics", "visualizations", "correlation", "cleaning", "insights", "summary"]
+    for section in csv_sections:
+        total_tests += 1
+        try:
+            csv_response = session.get(
+                f"{BASE_URL}/exports/pipeline/{completed_pipeline}/export-csv",
+                params={"section": section}
+            )
+            
+            if csv_response.status_code == 200:
+                csv_data = csv_response.json()
+                if "content" in csv_data and csv_data["content"]:
+                    # Try to decode CSV
+                    decoded_content = base64.b64decode(csv_data["content"]).decode("utf-8")
+                    csv_reader = csv.reader(io.StringIO(decoded_content))
+                    rows = list(csv_reader)
+                    print(f"✅ CSV Export ({section}): {len(rows)} rows")
+                    success_count += 1
+                else:
+                    print(f"❌ CSV Export ({section}): No content")
+            else:
+                print(f"❌ CSV Export ({section}): HTTP {csv_response.status_code}")
+        except Exception as e:
+            print(f"❌ CSV Export ({section}): Exception - {str(e)[:50]}")
+    
+    # Test chart PNG exports
+    chart_tests = [
+        {"chart_type": "histogram", "columns": ["age"]},
+        {"chart_type": "correlation_matrix"},
+        {"chart_type": "scatter_plot", "columns": ["age", "salary"]},
+        {"chart_type": "box_plot", "columns": ["performance_score"]},
+    ]
+    
+    for chart_test in chart_tests:
+        total_tests += 1
+        try:
+            params = {"chart_type": chart_test["chart_type"]}
+            if "columns" in chart_test:
+                params["columns"] = chart_test["columns"]
+            
+            chart_response = session.get(
+                f"{BASE_URL}/exports/pipeline/{completed_pipeline}/export-chart",
+                params=params
+            )
+            
+            if chart_response.status_code == 200:
+                chart_data = chart_response.json()
+                if "content" in chart_data and chart_data["content"]:
+                    decoded_img = base64.b64decode(chart_data["content"])
+                    if len(decoded_img) > 1000 and decoded_img.startswith(b"\x89PNG"):
+                        print(f"✅ Chart Export ({chart_test['chart_type']}): {len(decoded_img):,} bytes PNG")
+                        success_count += 1
+                    else:
+                        print(f"❌ Chart Export ({chart_test['chart_type']}): Invalid PNG")
+                else:
+                    print(f"❌ Chart Export ({chart_test['chart_type']}): No content")
+            else:
+                print(f"❌ Chart Export ({chart_test['chart_type']}): HTTP {chart_response.status_code}")
+        except Exception as e:
+            print(f"❌ Chart Export ({chart_test['chart_type']}): Exception - {str(e)[:50]}")
+    
+    # Test pipeline results verification
+    total_tests += 1
+    try:
+        results_response = session.get(f"{BASE_URL}/analysis/pipeline/{completed_pipeline}/results")
+        
+        if results_response.status_code == 200:
+            results = results_response.json()
+            
+            # Check for enhanced visualization features
+            visualization = results.get("visualization", {})
+            smart_recs = visualization.get("smart_recommendations", {})
+            recommendations = smart_recs.get("recommendations", [])
+            column_profiles = visualization.get("column_profiles", {}) or smart_recs.get("column_profiles", {})
+            llm_chart_insights = visualization.get("llm_chart_insights", {})
+            
+            checks = [
+                (len(recommendations) > 0, f"Smart recommendations: {len(recommendations)} found"),
+                (len(column_profiles) > 0, f"Column profiles: {len(column_profiles)} columns"),
+                (len(llm_chart_insights) > 0, f"LLM chart insights: {len(llm_chart_insights)} insights"),
+            ]
+            
+            all_passed = True
+            for passed, message in checks:
+                if passed:
+                    print(f"✅ {message}")
+                else:
+                    print(f"❌ {message}")
+                    all_passed = False
+            
+            if all_passed:
+                success_count += 1
+                print("✅ Pipeline Results: Enhanced features present")
+            else:
+                print("❌ Pipeline Results: Missing enhanced features")
+        else:
+            print(f"❌ Pipeline Results: HTTP {results_response.status_code}")
+    except Exception as e:
+        print(f"❌ Pipeline Results: Exception - {str(e)[:50]}")
+    
+    # Summary
+    print("\n" + "=" * 50)
+    print("📊 TEST SUMMARY")
+    print("=" * 50)
+    print(f"Results: {success_count}/{total_tests} tests passed")
+    
+    if success_count == total_tests:
+        print("🎉 ALL ENHANCED EXPORT TESTS PASSED!")
+        return True
+    else:
+        print("⚠️  Some export tests failed")
+        return False
 
 if __name__ == "__main__":
-    sys.exit(main())
+    success = main()
+    sys.exit(0 if success else 1)

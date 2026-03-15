@@ -162,6 +162,86 @@ Recommend the top 3 visualizations for:
 
         return self.generate_insight(prompt, context)
     
+    def generate_chart_narrative(self, chart_type: str, columns: List[str], 
+                                  data_summary: Dict, chart_config: Dict = None) -> str:
+        """Generate a dynamic narrative for a specific chart"""
+        prompt = f"""You are creating a narrative for a {chart_type} visualization.
+
+Chart Details:
+- Type: {chart_type}
+- Columns: {', '.join(columns)}
+- Data Summary: {data_summary}
+
+Generate a concise, insightful narrative (2-3 sentences) that:
+1. Describes what the chart shows
+2. Highlights the key finding or pattern
+3. Suggests what action to take based on this insight
+
+Be specific to the actual data values provided."""
+
+        return self.generate_insight(prompt, {'chart_type': chart_type, 'columns': columns})
+    
+    def generate_anomaly_narrative(self, column: str, anomalies: List[Dict], 
+                                   stats: Dict) -> str:
+        """Generate narrative about detected anomalies"""
+        anomaly_text = "\n".join([
+            f"- Value: {a.get('value')}, Z-score: {a.get('zscore', 'N/A'):.2f}"
+            for a in anomalies[:5]
+        ])
+        
+        prompt = f"""Analyze these anomalies detected in column '{column}':
+
+{anomaly_text}
+
+Column Statistics:
+- Mean: {stats.get('mean', 'N/A')}
+- Std Dev: {stats.get('std', 'N/A')}
+- Min: {stats.get('min', 'N/A')}
+- Max: {stats.get('max', 'N/A')}
+
+Provide:
+1. Assessment of whether these are true anomalies or data errors
+2. Potential business implications
+3. Recommended handling approach"""
+
+        return self.generate_insight(prompt, {'column': column, 'anomalies': anomalies})
+    
+    def generate_pattern_insight(self, pattern_type: str, pattern_data: Dict) -> str:
+        """Generate insight about a detected pattern"""
+        prompt = f"""A {pattern_type} pattern was detected in the data:
+
+Pattern Details:
+{pattern_data}
+
+Explain:
+1. What this pattern means in plain language
+2. Why this pattern might exist
+3. How this insight can be used for decision-making"""
+
+        return self.generate_insight(prompt, pattern_data)
+    
+    def generate_comparison_insight(self, groups: List[str], metrics: Dict, 
+                                    comparison_type: str = 'categorical') -> str:
+        """Generate insight comparing groups"""
+        metrics_text = "\n".join([
+            f"- {group}: {values}"
+            for group, values in metrics.items()
+        ])
+        
+        prompt = f"""Compare these groups based on the following metrics:
+
+Groups: {', '.join(groups)}
+
+Metrics:
+{metrics_text}
+
+Provide:
+1. Which group performs best/worst and why
+2. Key differences between groups
+3. Actionable recommendations based on the comparison"""
+
+        return self.generate_insight(prompt, {'groups': groups, 'metrics': metrics})
+    
     def _build_data_context(self, df: pd.DataFrame, statistics: Dict = None) -> Dict:
         """Build context dictionary from dataframe"""
         numeric_cols = df.select_dtypes(include=[np.number]).columns.tolist()
