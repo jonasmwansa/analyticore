@@ -243,6 +243,19 @@ export const automatedPipelineAPI = {
   
   // Get LLM status
   getLLMStatus: () => api.get('/analysis/pipeline/llm-status'),
+  
+  // Export pipeline results
+  exportPDF: (pipelineId) => api.get(`/exports/pipeline/${pipelineId}/export-pdf`),
+  exportExcel: (pipelineId) => api.get(`/exports/pipeline/${pipelineId}/export-excel`),
+};
+
+// Project Export API
+export const projectExportAPI = {
+  exportPDF: (projectId) => api.get(`/exports/${projectId}/export-pdf`),
+  exportStatistics: (projectId, format = 'excel') => 
+    api.get(`/exports/${projectId}/export-statistics?export_format=${format}`),
+  exportCorrelation: (projectId, format = 'excel', method = 'pearson') => 
+    api.get(`/exports/${projectId}/export-correlation?export_format=${format}&method=${method}`),
 };
 
 export default api;

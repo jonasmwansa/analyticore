@@ -120,3 +120,4 @@ black==26.1.0
 isort==7.0.0
 mypy==1.19.1
 ollama
+reportlab\nweasyprint

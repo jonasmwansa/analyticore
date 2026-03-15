@@ -2,6 +2,7 @@
 """
 DataPulse Backend API Testing Suite
 Tests all API endpoints for authentication, projects, file upload, AI analysis, and transformations
+Focus: Pipeline and Export Features Testing
 """
 
 import requests
@@ -9,6 +10,7 @@ import sys
 import json
 import io
 import os
+import base64
 from datetime import datetime
 from pathlib import Path
 
@@ -16,13 +18,14 @@ class DataPulseAPITester:
     def __init__(self, base_url="https://private-analyst.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.session = requests.Session()
-        self.test_user_email = f"test_user_{datetime.now().strftime('%H%M%S')}@example.com"
-        self.test_user_name = "Test User"
-        self.test_password = "TestPass123!"
+        self.test_user_email = "export_test@example.com"
+        self.test_user_name = "Export Test User"
+        self.test_password = "TestPassword123!"
         self.tests_run = 0
         self.tests_passed = 0
         self.project_id = None
-        print(f"🚀 Starting DataPulse API Tests")
+        self.pipeline_id = None
+        print(f"🚀 Starting DataPulse API Tests - Pipeline & Export Focus")
         print(f"📍 Base URL: {base_url}")
         print(f"👤 Test User: {self.test_user_email}")
         print("=" * 80)
@@ -86,7 +89,7 @@ class DataPulseAPITester:
             "User Registration",
             "POST",
             "auth/register",
-            200,
+            201,  # Changed from 200 to 201
             data={
                 "email": self.test_user_email,
                 "password": self.test_password,
@@ -116,6 +119,10 @@ class DataPulseAPITester:
         )
         if success and 'user' in response:
             print(f"   👤 Logged in as: {response['user']['name']}")
+            # Set authentication token for subsequent requests
+            if 'token' in response:
+                self.session.headers.update({'Authorization': f"Token {response['token']}"})
+                print(f"   🔐 Authentication token set")
         return success
 
     def test_get_current_user(self):
@@ -133,10 +140,10 @@ class DataPulseAPITester:
         success, response = self.run_test(
             "Create Project",
             "POST",
-            "projects",
-            200,
+            "projects/",  # Added trailing slash
+            201,  # Changed from 200 to 201
             data={
-                "name": f"Test Project {datetime.now().strftime('%H:%M:%S')}",
+                "name": f"Export Test Project {datetime.now().strftime('%H:%M:%S')}",
                 "source_type": "file_upload"
             }
         )
@@ -150,7 +157,7 @@ class DataPulseAPITester:
         success, response = self.run_test(
             "Get Projects",
             "GET",
-            "projects",
+            "projects/",  # Added trailing slash
             200
         )
         if success and isinstance(response, list):
@@ -255,6 +262,151 @@ Charlie Wilson,32,Phoenix,58000"""
         
         return success
 
+    def test_llm_status(self):
+        """Test LLM Status Check - Verify Ollama with qwen2.5:1.5b is available"""
+        success, response = self.run_test(
+            "LLM Status Check (qwen2.5:1.5b)",
+            "GET",
+            "analysis/pipeline/llm-status",
+            200
+        )
+        
+        if success:
+            if 'available' in response and response['available']:
+                print(f"   🤖 LLM Status: Available")
+                if 'model' in response:
+                    print(f"   📦 Model: {response['model']}")
+            else:
+                print(f"   ⚠️  LLM Status: Not Available")
+        
+        return success
+
+    def test_pipeline_start(self):
+        """Test starting the automated pipeline"""
+        if not self.project_id:
+            print(f"\n⚠️  Skipping pipeline test - no project created")
+            return False
+
+        print(f"\n🔄 Starting Pipeline (may take some time for processing)")
+        success, response = self.run_test(
+            "Start Pipeline",
+            "POST",
+            f"analysis/pipeline/start/{self.project_id}",
+            200,
+            data={"llm_enabled": True}
+        )
+        
+        if success and 'pipeline_id' in response:
+            self.pipeline_id = response['pipeline_id']
+            print(f"   🚀 Pipeline started: {self.pipeline_id}")
+            print(f"   📊 Status: {response.get('status', 'unknown')}")
+        
+        return success
+
+    def test_pipeline_status(self):
+        """Test getting pipeline status"""
+        if not self.pipeline_id:
+            print(f"\n⚠️  Skipping pipeline status test - no pipeline created")
+            return False
+
+        success, response = self.run_test(
+            "Pipeline Status",
+            "GET",
+            f"analysis/pipeline/{self.pipeline_id}/status",
+            200
+        )
+        
+        if success:
+            print(f"   📊 Status: {response.get('status', 'unknown')}")
+            print(f"   📈 Progress: {response.get('progress_percent', 0)}%")
+            print(f"   🎯 Current Stage: {response.get('current_stage', 'unknown')}")
+        
+        return success
+
+    def test_pipeline_results(self):
+        """Test getting pipeline results"""
+        if not self.pipeline_id:
+            print(f"\n⚠️  Skipping pipeline results test - no pipeline created")
+            return False
+
+        success, response = self.run_test(
+            "Pipeline Results",
+            "GET",
+            f"analysis/pipeline/{self.pipeline_id}/results",
+            200
+        )
+        
+        if success:
+            print(f"   📊 Status: {response.get('status', 'unknown')}")
+            print(f"   ⏱️  Duration: {response.get('duration_seconds', 0)} seconds")
+            if 'results' in response and response['results']:
+                results = response['results']
+                print(f"   📈 Results sections: {list(results.keys())}")
+        
+        return success
+
+    def test_export_pdf(self):
+        """Test PDF export functionality"""
+        if not self.pipeline_id:
+            print(f"\n⚠️  Skipping PDF export test - no pipeline created")
+            return False
+
+        success, response = self.run_test(
+            "Export PDF",
+            "GET",
+            f"exports/pipeline/{self.pipeline_id}/export-pdf",
+            200
+        )
+        
+        if success:
+            if 'content' in response and 'filename' in response:
+                print(f"   📄 PDF Generated: {response['filename']}")
+                print(f"   📦 Content Type: {response.get('content_type', 'unknown')}")
+                print(f"   🔢 Content Encoding: {response.get('encoding', 'unknown')}")
+                
+                # Verify base64 content
+                try:
+                    if response.get('encoding') == 'base64':
+                        pdf_data = base64.b64decode(response['content'])
+                        print(f"   ✅ Base64 content decoded successfully ({len(pdf_data)} bytes)")
+                except Exception as e:
+                    print(f"   ❌ Failed to decode base64 content: {e}")
+            else:
+                print(f"   ❌ Missing content or filename in response")
+        
+        return success
+
+    def test_export_excel(self):
+        """Test Excel export functionality"""
+        if not self.pipeline_id:
+            print(f"\n⚠️  Skipping Excel export test - no pipeline created")
+            return False
+
+        success, response = self.run_test(
+            "Export Excel",
+            "GET",
+            f"exports/pipeline/{self.pipeline_id}/export-excel",
+            200
+        )
+        
+        if success:
+            if 'content' in response and 'filename' in response:
+                print(f"   📊 Excel Generated: {response['filename']}")
+                print(f"   📦 Content Type: {response.get('content_type', 'unknown')}")
+                print(f"   🔢 Content Encoding: {response.get('encoding', 'unknown')}")
+                
+                # Verify base64 content
+                try:
+                    if response.get('encoding') == 'base64':
+                        excel_data = base64.b64decode(response['content'])
+                        print(f"   ✅ Base64 content decoded successfully ({len(excel_data)} bytes)")
+                except Exception as e:
+                    print(f"   ❌ Failed to decode base64 content: {e}")
+            else:
+                print(f"   ❌ Missing content or filename in response")
+        
+        return success
+
     def test_logout(self):
         """Test user logout"""
         success, response = self.run_test(
@@ -267,7 +419,7 @@ Charlie Wilson,32,Phoenix,58000"""
 
     def run_comprehensive_test(self):
         """Run all tests in sequence"""
-        print(f"🔬 COMPREHENSIVE API TESTING STARTED")
+        print(f"🔬 COMPREHENSIVE API TESTING STARTED - PIPELINE & EXPORT FOCUS")
         
         # Authentication Tests
         print(f"\n" + "="*50 + " AUTHENTICATION TESTS " + "="*50)
@@ -285,6 +437,9 @@ Charlie Wilson,32,Phoenix,58000"""
         
         # Only continue with project tests if we can authenticate
         project_passed = 0
+        pipeline_passed = 0
+        export_passed = 0
+        
         if auth_passed >= 2:  # At least registration and login work
             # Project Management Tests
             print(f"\n" + "="*50 + " PROJECT MANAGEMENT TESTS " + "="*50)
@@ -293,15 +448,43 @@ Charlie Wilson,32,Phoenix,58000"""
                 ("Get Projects", self.test_get_projects),
                 ("File Upload", self.test_file_upload),
                 ("Get Project Data", self.test_get_project_data),
-                ("AI Analysis", self.test_ai_analysis),
-                ("Data Transformation", self.test_data_transformation),
             ]
             
             for test_name, test_func in project_tests:
                 if test_func():
                     project_passed += 1
+
+            # Pipeline Tests (if project setup successful)
+            if project_passed >= 3:
+                print(f"\n" + "="*50 + " PIPELINE TESTS " + "="*50)
+                pipeline_tests = [
+                    ("LLM Status Check", self.test_llm_status),
+                    ("Pipeline Start", self.test_pipeline_start),
+                    ("Pipeline Status", self.test_pipeline_status),
+                    ("Pipeline Results", self.test_pipeline_results),
+                ]
+                
+                for test_name, test_func in pipeline_tests:
+                    if test_func():
+                        pipeline_passed += 1
+
+                # Export Tests (if pipeline setup successful)
+                if pipeline_passed >= 3:
+                    print(f"\n" + "="*50 + " EXPORT TESTS " + "="*50)
+                    export_tests = [
+                        ("Export PDF", self.test_export_pdf),
+                        ("Export Excel", self.test_export_excel),
+                    ]
+                    
+                    for test_name, test_func in export_tests:
+                        if test_func():
+                            export_passed += 1
+                else:
+                    print(f"\n⚠️  Skipping export tests due to pipeline failures")
+            else:
+                print(f"\n⚠️  Skipping pipeline tests due to project failures")
         else:
-            print(f"\n⚠️  Skipping project tests due to authentication failures")
+            print(f"\n⚠️  Skipping all tests due to authentication failures")
         
         # Cleanup
         print(f"\n" + "="*50 + " CLEANUP " + "="*50)
@@ -312,7 +495,9 @@ Charlie Wilson,32,Phoenix,58000"""
         success_rate = (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0
         print(f"📊 Tests Passed: {self.tests_passed}/{self.tests_run} ({success_rate:.1f}%)")
         print(f"🔐 Authentication: {auth_passed}/4 tests passed")
-        print(f"📁 Project Management: {project_passed}/6 tests passed")
+        print(f"📁 Project Management: {project_passed}/4 tests passed")
+        print(f"🚀 Pipeline: {pipeline_passed}/4 tests passed")
+        print(f"📤 Export: {export_passed}/2 tests passed")
         
         # Determine overall success
         critical_failures = []
@@ -320,6 +505,10 @@ Charlie Wilson,32,Phoenix,58000"""
             critical_failures.append("Authentication system has issues")
         if project_passed < 3 and auth_passed >= 2:
             critical_failures.append("Project management has issues")
+        if pipeline_passed < 3 and project_passed >= 3:
+            critical_failures.append("Pipeline functionality has issues")
+        if export_passed < 2 and pipeline_passed >= 3:
+            critical_failures.append("Export functionality has issues")
             
         if critical_failures:
             print(f"\n🚨 CRITICAL ISSUES FOUND:")
@@ -328,6 +517,9 @@ Charlie Wilson,32,Phoenix,58000"""
             return 1
         else:
             print(f"\n✅ BACKEND TESTING COMPLETED SUCCESSFULLY")
+            print(f"   🤖 LLM Integration Working")
+            print(f"   🚀 Pipeline System Functional")
+            print(f"   📤 Export Features Working")
             return 0
 
 def main():

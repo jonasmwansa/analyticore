@@ -49,6 +49,7 @@ export default function AutomatedPipeline({ projectId, projectName, onComplete }
   const [llmEnabled, setLLMEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState('progress');
   const [results, setResults] = useState(null);
+  const [exporting, setExporting] = useState(false);
 
   // Check LLM status on mount
   useEffect(() => {
@@ -56,6 +57,50 @@ export default function AutomatedPipeline({ projectId, projectName, onComplete }
       .then(res => setLLMStatus(res.data))
       .catch(() => setLLMStatus({ available: false, mode: 'rule_based' }));
   }, []);
+
+  // Download file from base64
+  const downloadFile = (content, filename, contentType) => {
+    const byteCharacters = atob(content);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: contentType });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  };
+
+  // Export handlers
+  const exportPDF = async () => {
+    if (!pipelineId) return;
+    setExporting(true);
+    try {
+      const response = await automatedPipelineAPI.exportPDF(pipelineId);
+      downloadFile(response.data.content, response.data.filename, response.data.content_type);
+    } catch (err) {
+      setError('Failed to export PDF');
+    }
+    setExporting(false);
+  };
+
+  const exportExcel = async () => {
+    if (!pipelineId) return;
+    setExporting(true);
+    try {
+      const response = await automatedPipelineAPI.exportExcel(pipelineId);
+      downloadFile(response.data.content, response.data.filename, response.data.content_type);
+    } catch (err) {
+      setError('Failed to export Excel');
+    }
+    setExporting(false);
+  };
 
   // Start the pipeline
   const startPipeline = async () => {
@@ -634,13 +679,39 @@ export default function AutomatedPipeline({ projectId, projectName, onComplete }
       {status?.status === 'completed' && results && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-500" />
-              Analysis Complete
-            </CardTitle>
-            <CardDescription>
-              Processed in {status?.duration_seconds?.toFixed(1)} seconds
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  Analysis Complete
+                </CardTitle>
+                <CardDescription>
+                  Processed in {status?.duration_seconds?.toFixed(1)} seconds
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={exportPDF}
+                  disabled={exporting}
+                  className="flex items-center gap-2"
+                >
+                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  PDF Report
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={exportExcel}
+                  disabled={exporting}
+                  className="flex items-center gap-2"
+                >
+                  {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                  Excel
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             {renderResults()}

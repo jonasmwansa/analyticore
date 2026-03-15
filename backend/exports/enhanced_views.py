@@ -497,3 +497,196 @@ def export_visualization(request, project_id):
         import traceback
         traceback.print_exc()
         return Response({'detail': f'Export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pdf_report(request, project_id):
+    """
+    Export comprehensive analysis report as PDF
+    """
+    from .pdf_export import export_analysis_to_pdf
+    from analysis.models import PipelineProgress
+    
+    try:
+        project = Project.objects.get(project_id=project_id, user=request.user)
+    except Project.DoesNotExist:
+        return Response({'detail': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    # Get latest pipeline results
+    try:
+        progress = PipelineProgress.objects.filter(
+            project=project,
+            status='completed'
+        ).order_by('-completed_at').first()
+        
+        if progress:
+            results = progress.final_results
+            llm_insights = progress.llm_insights
+        else:
+            # Fallback to project statistics
+            results = {
+                'summary': project.statistics.get('automation', {}).get('final_summary', {}),
+                'cleaning': {},
+                'statistics': project.statistics,
+                'correlation': {},
+                'insights': {},
+                'visualization': {}
+            }
+            llm_insights = {}
+    except Exception:
+        results = {'summary': project.statistics}
+        llm_insights = {}
+    
+    try:
+        pdf_bytes = export_analysis_to_pdf(project.name, results, llm_insights)
+        safe_name = project.name.replace(' ', '_').replace('"', '').replace("'", '')
+        
+        return Response({
+            'filename': f'{safe_name}_analysis_report.pdf',
+            'content_type': 'application/pdf',
+            'content': base64.b64encode(pdf_bytes).decode('utf-8'),
+            'encoding': 'base64'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'detail': f'PDF export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pipeline_pdf(request, pipeline_id):
+    """
+    Export pipeline results as PDF
+    """
+    from .pdf_export import export_analysis_to_pdf
+    from analysis.models import PipelineProgress
+    
+    try:
+        progress = PipelineProgress.objects.select_related('project').get(
+            pipeline_id=pipeline_id,
+            user=request.user
+        )
+    except PipelineProgress.DoesNotExist:
+        return Response({'detail': 'Pipeline not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if progress.status != 'completed':
+        return Response({'detail': 'Pipeline not completed yet'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        pdf_bytes = export_analysis_to_pdf(
+            progress.project.name,
+            progress.final_results,
+            progress.llm_insights
+        )
+        safe_name = progress.project.name.replace(' ', '_').replace('"', '').replace("'", '')
+        
+        return Response({
+            'filename': f'{safe_name}_pipeline_report.pdf',
+            'content_type': 'application/pdf',
+            'content': base64.b64encode(pdf_bytes).decode('utf-8'),
+            'encoding': 'base64'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'detail': f'PDF export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def export_pipeline_excel(request, pipeline_id):
+    """
+    Export pipeline results as Excel with multiple sheets
+    """
+    from analysis.models import PipelineProgress
+    
+    try:
+        progress = PipelineProgress.objects.select_related('project').get(
+            pipeline_id=pipeline_id,
+            user=request.user
+        )
+    except PipelineProgress.DoesNotExist:
+        return Response({'detail': 'Pipeline not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if progress.status != 'completed':
+        return Response({'detail': 'Pipeline not completed yet'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        results = progress.final_results
+        buffer = io.BytesIO()
+        
+        with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+            # Summary sheet
+            summary = results.get('summary', {})
+            summary_data = {
+                'Metric': ['Total Rows', 'Total Columns', 'Quality Score', 'Quality Label', 'Processing Time'],
+                'Value': [
+                    summary.get('total_rows', 0),
+                    summary.get('total_columns', 0),
+                    summary.get('quality_score', 'N/A'),
+                    summary.get('quality_label', 'N/A'),
+                    f"{progress.duration_seconds:.2f}s" if progress.duration_seconds else 'N/A'
+                ]
+            }
+            pd.DataFrame(summary_data).to_excel(writer, sheet_name='Summary', index=False)
+            
+            # Statistics sheet
+            statistics = results.get('statistics', {})
+            numeric_summary = statistics.get('numeric_summary', {})
+            if numeric_summary:
+                stats_df = pd.DataFrame(numeric_summary).T
+                stats_df.index.name = 'Column'
+                stats_df.reset_index().to_excel(writer, sheet_name='Statistics', index=False)
+            
+            # Correlations sheet
+            correlation = results.get('correlation', {})
+            top_corr = correlation.get('top_correlations', [])
+            if top_corr:
+                corr_df = pd.DataFrame(top_corr)
+                corr_df.to_excel(writer, sheet_name='Correlations', index=False)
+            
+            # Cleaning Actions sheet
+            cleaning = results.get('cleaning', {})
+            actions = cleaning.get('applied_actions', [])
+            if actions:
+                actions_df = pd.DataFrame(actions)
+                actions_df.to_excel(writer, sheet_name='Cleaning Actions', index=False)
+            
+            # Insights sheet
+            insights = results.get('insights', {})
+            key_insights = insights.get('key_insights', [])
+            if key_insights:
+                insights_df = pd.DataFrame(key_insights)
+                insights_df.to_excel(writer, sheet_name='Insights', index=False)
+            
+            # Visualization Recommendations sheet
+            viz = results.get('visualization', {})
+            suggestions = viz.get('suggested_visualizations', [])
+            if suggestions:
+                viz_df = pd.DataFrame(suggestions)
+                viz_df.to_excel(writer, sheet_name='Visualizations', index=False)
+            
+            # LLM Insights sheet
+            llm_insights = progress.llm_insights or {}
+            if llm_insights:
+                llm_data = [{'Section': k, 'Insight': v} for k, v in llm_insights.items() if v]
+                if llm_data:
+                    llm_df = pd.DataFrame(llm_data)
+                    llm_df.to_excel(writer, sheet_name='AI Insights', index=False)
+        
+        buffer.seek(0)
+        safe_name = progress.project.name.replace(' ', '_').replace('"', '').replace("'", '')
+        
+        return Response({
+            'filename': f'{safe_name}_pipeline_report.xlsx',
+            'content_type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'content': base64.b64encode(buffer.getvalue()).decode('utf-8'),
+            'encoding': 'base64'
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({'detail': f'Excel export failed: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
